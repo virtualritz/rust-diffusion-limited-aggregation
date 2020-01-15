@@ -1,0 +1,19 @@
+[package]
+name = "rust-diffusion-limited-aggregation"
+version = "0.1.0"
+authors = ["Moritz Moeller <virtualritz@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+nalgebra = "*"
+rstar = "*"
+rand = "*"
+ply-rs = "*"
+random-fast-rng = "*"
+clap = "*"
+error-chain = "*"
+indicatif = "*"
+
+[profile.release]
+lto = "on"
+opt-level = 3
