@@ -1,4 +1,5 @@
-# rust-diffusion-limited-aggregation
-Diffusion limited aggregation in Rust. Just to play with something to test the `nsi-sys` crate.
+# Diffusion Limited Aggregation in Rust
+
+Just to play with something while testing the [nsi](https://crates.io/crates/nsi) crate.
 
 ![Result of rendering with 3Delight|NSI from within the tool](dla.jpg)
