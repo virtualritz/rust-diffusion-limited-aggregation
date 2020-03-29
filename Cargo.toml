@@ -1,18 +1,25 @@
 [package]
-name = "rust-diffusion-limited-aggregation"
+name = "rdla"
 version = "0.1.0"
 authors = ["Moritz Moeller <virtualritz@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-nalgebra = "*"
-rstar = "*"
-rand = "*"
-ply-rs = "*"
-random-fast-rng = "*"
 clap = "*"
 error-chain = "*"
+if_chain = "*"
 indicatif = "*"
+nalgebra = "*"
+nsi = { path="../crates/nsi/" }
+ply-rs = "*"
+rstar = "*"
+random-fast-rng = "*"
+rand = "*"
+serde = "*"
+serde_derive = "*"
+toml = "*"
+tobj = "*"
+
 
 [profile.release]
 lto = "on"
