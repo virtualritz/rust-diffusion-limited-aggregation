@@ -413,16 +413,11 @@ impl Model {
         c: &nsi::Context,
         instance_obj_path: &Path,
     ) {
-        eprintln!("{}", instance_obj_path.display());
-
         let object = tobj::load_obj(instance_obj_path);
         if !object.is_ok() {
             return;
         }
-        let (models, materials) = object.unwrap();
-
-        println!("# of models: {}", models.len());
-        println!("# of materials: {}", materials.len());
+        let (models, _materials) = object.unwrap();
 
         c.create("instance", &nsi::Node::Transform, nsi::no_arg!());
         for model in models {
@@ -846,7 +841,10 @@ impl Model {
                         .to_str()
                         .unwrap())
                 ),
-                nsi::arg!("intensity", &2.0f32),
+                nsi::arg!(
+                    "intensity",
+                    &self.config.environment.intensity.unwrap_or(1.0)
+                ),
             ],
         );
 

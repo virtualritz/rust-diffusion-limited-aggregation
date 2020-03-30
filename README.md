@@ -6,9 +6,9 @@ Just to play with something while testing the [ɴsɪ](https://crates.io/crates/n
 
 ## Building
 
-Because the ɴsɪ crate uses unstable feature you need to set the local toolchain to `nightly`:
+As the ɴsɪ crate uses unstable features you need to set the local toolchain to `nightly`:
 
-```shell
+```console
 > rustup override set nightly
 ```
 
@@ -16,7 +16,7 @@ The space partitioning insertion is extremenly slow for debug builds.
 If you want to generate more than 10k particles doing a release build is mandatory.
 Because the crate has link time optimizations enabled, the final build step is quiet slow.
 
-```shell
+```console
 > cargo build --release
 ```
 
@@ -24,13 +24,13 @@ Because the crate has link time optimizations enabled, the final build step is q
 
 Builds will be in the `./target` folder.
 
-```shell
+```console
 > target/release/rdla -r
 ```
 
 ## Usage
 
-```shell
+```usage
 
 USAGE:
     rdla [FLAGS] [OPTIONS]
@@ -95,6 +95,7 @@ This can be overridden with the `--config` flag.
 
 [environment]
     texture = ""
+    intensity = 1.2
 
 [nsi]
     resolution = 2048

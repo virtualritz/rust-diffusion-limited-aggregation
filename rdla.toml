@@ -24,18 +24,19 @@
     # scale is linearly interpolated.
     scale = [2.0, 2.0]
     # A wavefront OBJ (converted to triangles for now)
-    # to instace instead of a particle.
-    instance_geo = "dodeca.obj"
+    # to instace instead of a sphere particle.
+    instance_geo = "" # "assets/cube.obj"
     subidivsion = true
 
 [material]
-    color = [0.8, 0.8, 0.8]
+    color = [0.5, 0.6, 0.8]
     roughness = 0.3
     metallic = 1.0
     specular_level = 0.8
 
 [environment]
-    texture = ""
+    texture = "assets/artist_workshop_1k.tdl"
+    intensity = 1.2
 
 [nsi]
     resolution = 2048

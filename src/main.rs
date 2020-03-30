@@ -49,6 +49,7 @@ struct Material {
 #[derive(Clone, Debug, Default, Deserialize)]
 struct Environment {
     texture: Option<String>,
+    intensity: Option<f32>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
