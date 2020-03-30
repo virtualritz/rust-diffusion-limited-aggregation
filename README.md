@@ -107,9 +107,10 @@ This can be overridden with the `--config` flag.
     stickiness = 1.0
 
     [aggregation.start_shape]
-        shape = "point"
-        diameter = 0
-        particles = 1
+        shape = "point" # supported "ring"
+        diameter = 0 # diameter of "ring"
+        particles = 1 # number of particles distributed on
+                      # "ring"
 
 [particle]
     # Scale can be changed over the iteration.
