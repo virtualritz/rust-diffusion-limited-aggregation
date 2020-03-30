@@ -7,7 +7,8 @@ use ply_rs::{
     },
     writer::Writer,
 };
-use rand::Rng;
+use rand::{distributions::Distribution, Rng};
+use rand_distr::UnitSphere;
 use rand_xoshiro::{rand_core::SeedableRng, Xoshiro256Plus};
 use rstar::{
     primitives::PointWithData, RStarInsertionStrategy, RTree,
@@ -235,8 +236,8 @@ impl Model {
             let move_magnitude = self.repulsion_distance.max(
                 distance_squared.sqrt() - self.attraction_distance,
             );
-            *particle += move_magnitude
-                * self.random_point_in_unit_sphere().normalize();
+            *particle +=
+                move_magnitude * self.random_point_on_unit_sphere();
 
             // reset to a new random particle if is too far away
             if self.out_of_bounds(&particle) {
@@ -348,29 +349,16 @@ impl Model {
 
     /// Returns a random, uniformly distributed point inside the unit
     /// sphere.
-    fn random_point_in_unit_sphere(&mut self) -> Point3D {
-        let point = &mut Point3D::new(
-            self.rng.gen_range(-1.0, 1.0),
-            self.rng.gen_range(-1.0, 1.0),
-            self.rng.gen_range(-1.0, 1.0),
-        );
-
-        loop {
-            if point.magnitude_squared() < 1.0 {
-                break *point; // return the point
-            }
-
-            point
-                .iter_mut()
-                .for_each(|e| *e = self.rng.gen_range(-1.0, 1.0));
-        }
+    fn random_point_on_unit_sphere(&mut self) -> Point3D {
+        //let u: ;
+        let v: [f32; 3] = UnitSphere.sample(&mut self.rng);
+        Point3D::new(v[0], v[1], v[2])
     }
 
     /// Returns a random point to start a new particle.
     #[inline]
     fn random_particle(&mut self) -> Point3D {
-        self.random_point_in_unit_sphere().normalize()
-            * self.bounding_radius
+        self.random_point_on_unit_sphere() * self.bounding_radius
     }
 
     /// Returns true if the particle has traveled
