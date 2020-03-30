@@ -13,7 +13,7 @@ Before you do anything you should
 [download](https://www.3delight.com/download) & install this renderer
 for your platform (supported: Linux, macOS & Windows).
 
-It comes with a free, 12-core license and a 1,000 (!) minutes worth of
+It comes with a free, 12-core license and 1,000 (!) minutes worth of
 cloud credits on registration. The latter may come in handy once you
 start experimenting with the ɴsɪ crate or this codebase yourself.
 
@@ -52,7 +52,7 @@ Builds will be in the `./target` folder.
 >
 > – analogously quoting Stanley Ipkiss, ‘The Mask’.
 
-To render in the cloud, register at
+To render in the cloud register at
 [3delight.com](https://www.3delight.com/), open i-display and log in
 with your credentials.
 
@@ -86,7 +86,7 @@ OPTIONS:
 
 ## Config File
 
-The app looks for config file named `rdla.toml` in the current
+The app looks for a config file named `rdla.toml` in the current
 directory.
 
 This can be overridden with the `--config` flag.
@@ -97,8 +97,8 @@ This can be overridden with the `--config` flag.
     random_seed = 42
     particles = 10000
     # Spacing can be changed over the iteration.
-    # The 1st value is used for the first particle place
-    # and the last for the last particle. In between,
+    # The 1st value is used for the first particle placed
+    # and the last for the last particle placed. In between,
     # spacing is linearly interpolated.
     spacing = [1.0, 1.0]
     attraction_distance = 3.0
@@ -115,7 +115,7 @@ This can be overridden with the `--config` flag.
 [particle]
     # Scale can be changed over the iteration.
     # The 1st value is used for the first particle placed
-    # and the last for the last particle. In between,
+    # and the last for the last particle placed. In between,
     # scale is linearly interpolated.
     scale = [2.0, 2.0]
     # A wavefront OBJ (converted to triangles for now)
