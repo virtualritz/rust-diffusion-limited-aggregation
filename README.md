@@ -4,17 +4,34 @@ Just to play with something while testing the [ɴsɪ](https://crates.io/crates/n
 
 ![Result of rendering with 3Delight|NSI from within the tool](dla.jpg)
 
+## Prerequisites
+
+The ɴsɪ crate indirectly depends on
+[3Delight](https://www.3delight.com/) being installed.
+
+Before you do anything you should
+[download](https://www.3delight.com/download) & install this renderer
+for your platform (Supported: Linux, macOS & Windows).
+
+It comes with a free 12-core license and a 1,000 minutes worth of cloud
+credits on registration. The latter may come in handy once you start
+experimenting with the ɴsɪ crate or this codebase yourself.
+
 ## Building
 
-As the ɴsɪ crate uses unstable features you need to set the local toolchain to `nightly`:
+As the ɴsɪ crate uses unstable Rust features you need to set the local
+toolchain to `nightly`:
 
 ```console
 > rustup override set nightly
 ```
 
 The space partitioning insertion is extremenly slow for debug builds.
-If you want to generate more than 10k particles doing a release build is mandatory.
-Because the crate has link time optimizations enabled, the final build step is quiet slow.
+If you want to generate more than 10k particles doing a release build is
+mandatory.
+
+Because the crate has link time optimizations enabled the final build
+step may be noticeably slow.
 
 ```console
 > cargo build --release
@@ -25,7 +42,23 @@ Because the crate has link time optimizations enabled, the final build step is q
 Builds will be in the `./target` folder.
 
 ```console
-> target/release/rdla -r
+> target/release/rdla --render
+```
+
+### Cloud Rendering
+
+> "Hold on to you lug nuts it's time for an overhaul [of your idea of
+> what consitutes fast rendering]!" (anal. Stanley Ipkiss, "The Mask").
+
+To render in the cloud, register at
+[3delight.com](https://www.3delight.com/), open i-display and log in
+with your credentials.
+
+Once you have done this all that is needed to launch a render in the
+cloud is to add the `--cloud` flag.
+
+```console
+> target/release/rdla --render --cloud
 ```
 
 ## Usage
