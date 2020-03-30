@@ -627,7 +627,7 @@ impl Model {
                     .set_tuple_len(2),
                 nsi::Arg::new(
                     "oversampling",
-                    &self.config.nsi.shading_samples.unwrap_or(64),
+                    &self.config.nsi.oversampling.unwrap_or(64),
                 ),
             ],
         );
