@@ -21,15 +21,25 @@ type Index = usize;
 
 pub type Point3D = Vector3<f32>;
 
-trait Square<T> {
-    fn square(&self) -> T;
+trait Square {
+    fn square(&self) -> Self;
 }
 
-impl Square<f32> for f32 {
+impl Square for f32 {
     #[inline]
-    fn square(&self) -> f32 {
+    fn square(&self) -> Self {
         self * self
     }
+}
+
+#[inline]
+fn lerp_points(a: &Point3D, b: &Point3D, d: f32) -> Point3D {
+    a + (b - a).normalize() * d
+}
+
+#[inline]
+fn lerp(a: f32, b: f32, l: f32) -> f32 {
+    a * (1.0 - l) + b * l
 }
 
 type IndexValue = PointWithData<Index, [f32; 3]>;
@@ -44,12 +54,8 @@ impl RTreeParams for Params {
 
 type Tree = RTree<IndexValue /* , Params */>;
 
-#[inline]
-fn lerp(a: &Point3D, b: &Point3D, d: f32) -> Point3D {
-    a + (b - a).normalize() * d
-}
-
 pub struct Model {
+    config: Config,
     particle_spacing: f32,
     attraction_distance: f32,
     repulsion_distance: f32,
@@ -57,7 +63,7 @@ pub struct Model {
     bounding_radius: f32,
     stubbornness: u8,
     join_attempts: Vec<u8>,
-    particles: Vec<Point3D>,
+    particles: Vec<(Point3D, f32)>,
     tree: Tree,
     rng: StdRng,
 }
@@ -65,8 +71,9 @@ pub struct Model {
 impl Model {
     pub fn new(config: &Config) -> Model {
         let model = Model {
-            // Input members
-            particle_spacing: config.aggregation.spacing.unwrap_or(1.0),
+            // Parameters from config.
+            config: config.clone(),
+
             attraction_distance: config
                 .aggregation
                 .attraction_distance
@@ -77,7 +84,9 @@ impl Model {
                 .unwrap_or(1.0),
             stubbornness: config.aggregation.stubbornness.unwrap_or(0),
             stickiness: config.aggregation.stickiness.unwrap_or(1.0),
-            // Output members
+            // Parameters modified during run().
+            particle_spacing: 1.0,
+            // Output members.
             bounding_radius: 0.0,
             join_attempts: Vec::new(),
             particles: Vec::new(),
@@ -89,14 +98,98 @@ impl Model {
         model
     }
 
+    pub fn run(&mut self) {
+        let mut number_of_particles =
+            self.config.aggregation.particles.unwrap_or(1000);
+
+        let progress_bar =
+            if self.config.aggregation.show_progress.unwrap_or(true) {
+                ProgressBar::new(number_of_particles as u64)
+            } else {
+                ProgressBar::hidden()
+            };
+
+        progress_bar.set_style(
+            ProgressStyle::default_bar()
+                .template(
+                    "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} ({eta})",
+                )
+                .progress_chars("█▉▊▋▌▍▎▏  "),
+        );
+
+        let scale = self.config.particle.scale.unwrap_or([2.0f32; 2]);
+
+        match self
+            .config
+            .aggregation
+            .start_shape
+            .shape
+            .as_ref()
+            .unwrap_or(&"point".to_string())
+            .as_str()
+        {
+            "ring" => {
+                let radius = self
+                    .config
+                    .aggregation
+                    .start_shape
+                    .diameter
+                    .unwrap_or(100.0)
+                    * 0.5;
+
+                let n = self
+                    .config
+                    .aggregation
+                    .start_shape
+                    .particles
+                    .unwrap_or(360);
+
+                for i in 0..n {
+                    let t = i as f32 / n as f32;
+                    let a = t * 2.0 * std::f32::consts::PI;
+                    let x = a.cos() * radius;
+                    let y = a.sin() * radius;
+                    self.add(&Point3D::new(x, y, 0.0), scale[0]);
+                    progress_bar.inc(1);
+                }
+                number_of_particles -= n;
+            }
+            _ => {
+                // Single seed point.
+                self.add(&dla::Point3D::new(0.0, 0.0, 0.0), scale[0]);
+                number_of_particles -= 1;
+            }
+        };
+
+        // Run diffusion-limited aggregation.
+        for p in 0..number_of_particles {
+            self.diffuse_particle(lerp(
+                scale[0],
+                scale[1],
+                p as f32 / number_of_particles as f32,
+            ));
+
+            let spacing =
+                self.config.aggregation.spacing.unwrap_or([1.0f32; 2]);
+
+            self.particle_spacing = lerp(
+                spacing[0],
+                spacing[1],
+                p as f32 / number_of_particles as f32,
+            );
+
+            progress_bar.inc(1);
+        }
+    }
+
     /// Add a prticle to the model 'manually'.
-    pub fn add(&mut self, point: &Point3D) {
+    pub fn add(&mut self, point: &Point3D, scale: f32) {
         let index = self.particles.len();
         self.tree.insert(PointWithData::new(
             index,
             [point.x, point.y, point.z],
         ));
-        self.particles.push(*point);
+        self.particles.push((*point, scale));
         self.join_attempts.push(0);
         self.bounding_radius = self
             .bounding_radius
@@ -104,7 +197,7 @@ impl Model {
     }
 
     /// Diffuses one new particle and adds it to the model.
-    pub fn diffuse_particle(&mut self) {
+    pub fn diffuse_particle(&mut self, scale: f32) {
         // compute particle starting location
         let particle: &mut Point3D = &mut self.random_particle();
 
@@ -112,15 +205,16 @@ impl Model {
         loop {
             // get distance to nearest other particle
             let parent = self.nearest_particle(&particle);
-            let distance_squared = (*particle - self.particles[parent])
+            let distance_squared = (*particle
+                - self.particles[parent].0)
                 .magnitude_squared();
 
             // check if close enough to join
             if distance_squared < self.attraction_distance.square() {
                 if !self.should_join(parent) {
                     // push particle away a bit
-                    *particle = lerp(
-                        &self.particles[parent],
+                    *particle = lerp_points(
+                        &self.particles[parent].0,
                         &particle,
                         self.attraction_distance
                             + self.repulsion_distance,
@@ -132,7 +226,7 @@ impl Model {
                 *particle = self.place_particle(&particle, parent);
 
                 // add the point
-                self.add(&particle); //, parent);
+                self.add(&particle, scale); //, parent);
                 break;
             }
 
@@ -151,10 +245,10 @@ impl Model {
     }
 
     /// Renders the scene via 3Delight|NSI.
-    pub fn render_nsi(&self, config: &Config) {
+    pub fn render_nsi(&self) {
         // Create rendering context.
         let c = {
-            if config.cloud_render.unwrap() {
+            if self.config.cloud_render.unwrap() {
                 nsi::Context::new(&vec![
                     nsi::arg!("cloud", &1i32),
                     nsi::arg!("software", nsi::c_str!("HOUDINI")),
@@ -165,19 +259,20 @@ impl Model {
         }
         .expect("Could not create NSI rendering context.");
 
-        self.output_scene_nsi(&c, config);
+        self.output_scene_nsi(&c);
     }
 
-    pub fn write_nsi(&self, config: &Config, path: &Path) {
+    pub fn write_nsi(&self, path: &Path) {
         let c = nsi::Context::new(&vec![nsi::arg!(
             "streamfilename",
             nsi::c_str!(path.to_str().unwrap())
         )])
         .unwrap();
 
-        self.output_scene_nsi(&c, config);
+        self.output_scene_nsi(&c);
     }
 
+    #[allow(unused_must_use)]
     pub fn write_ply(&self, path: &Path) {
         // Create a ply object.
         let mut ply = {
@@ -211,15 +306,15 @@ impl Model {
                 let mut point = DefaultElement::new();
                 point.insert(
                     "x".to_string(),
-                    Property::Float(particle.x),
+                    Property::Float(particle.0.x),
                 );
                 point.insert(
                     "y".to_string(),
-                    Property::Float(particle.y),
+                    Property::Float(particle.0.y),
                 );
                 point.insert(
                     "z".to_string(),
-                    Property::Float(particle.z),
+                    Property::Float(particle.0.z),
                 );
                 points.push(point);
             }
@@ -306,8 +401,8 @@ impl Model {
         point: &Point3D,
         parent: Index,
     ) -> Point3D {
-        lerp(
-            &self.particles[parent as usize],
+        lerp_points(
+            &self.particles[parent as usize].0,
             point,
             self.particle_spacing,
         )
@@ -349,12 +444,18 @@ impl Model {
                         "nvertices",
                         &vec![3i32; mesh.indices.len() / 3]
                     ),
-                    /*nsi::arg!(
-                        "subdivision.scheme",
-                        nsi::c_str!("catmull-clark")
-                    ),*/
                 ],
             );
+
+            if self.config.particle.subdivision.unwrap_or(false) {
+                c.set_attribute(
+                    model.name.as_str(),
+                    &vec![nsi::arg!(
+                        "subdivision.scheme",
+                        nsi::c_str!("catmull-clark")
+                    )],
+                );
+            }
 
             c.connect(
                 model.name.as_str(),
@@ -366,9 +467,9 @@ impl Model {
         }
     }
 
-    fn output_scene_nsi(&self, c: &nsi::Context, config: &Config) {
+    fn output_scene_nsi(&self, c: &nsi::Context) {
         if_chain! {
-            if let Some(instance_geo) = &config.aggregation.particle.instance_geo;
+            if let Some(instance_geo) = &self.config.particle.instance_geo;
             if let instance_geo_path = Path::new(&instance_geo);
             if instance_geo_path.exists();
             then {
@@ -398,25 +499,23 @@ impl Model {
                 let mut matrix =
                     Vec::<f64>::with_capacity(self.particles.len() * 16);
 
-                let scale = config.aggregation.particle.scale.unwrap_or(2.0) as f64;
-
                 self.particles.iter().for_each(|p| {
                     matrix.extend_from_slice(&[
-                        scale,
+                        p.1 as f64,
                         0.0,
                         0.0,
                         0.0,
                         0.0,
-                        scale,
+                        p.1 as f64,
                         0.0,
                         0.0,
                         0.0,
                         0.0,
-                        scale,
+                        p.1 as f64,
                         0.0,
-                        p[0] as f64,
-                        p[1] as f64,
-                        p[2] as f64,
+                        p.0[0] as f64,
+                        p.0[1] as f64,
+                        p.0[2] as f64,
                         1.0,
                     ])
                 });
@@ -445,9 +544,12 @@ impl Model {
 
                 let mut particle_positions =
                     Vec::<f32>::with_capacity(3 * self.particles.len());
+                let mut particle_widths =
+                    Vec::<f32>::with_capacity(self.particles.len());
 
                 self.particles.iter().for_each(|p| {
-                    p.iter().for_each(|c| particle_positions.push(*c))
+                    p.0.iter().for_each(|c| particle_positions.push(*c));
+                    particle_widths.push(p.1);
                 });
 
                 c.set_attribute(
@@ -455,7 +557,7 @@ impl Model {
                     &vec![
                         nsi::arg!("P", &particle_positions)
                             .set_type(nsi::Type::Point),
-                        nsi::arg!("width", &config.aggregation.particle.scale.unwrap_or(2.0)),
+                        nsi::arg!("width", &particle_widths ),
                     ],
                 );
             }
@@ -532,12 +634,17 @@ impl Model {
         // Setup a screen.
         c.create("screen", &nsi::Node::Screen, nsi::no_arg!());
         c.connect("screen", "", "camera", "screens", nsi::no_arg!());
+
+        let resolution = self.config.nsi.resolution.unwrap_or(2048);
         c.set_attribute(
             "screen",
             &vec![
-                nsi::Arg::new("resolution", &[8192, 8192])
+                nsi::Arg::new("resolution", &[resolution, resolution])
                     .set_tuple_len(2),
-                nsi::Arg::new("oversampling", &32i32),
+                nsi::Arg::new(
+                    "oversampling",
+                    &self.config.nsi.shading_samples.unwrap_or(64),
+                ),
             ],
         );
 
@@ -545,14 +652,33 @@ impl Model {
             ".global",
             &vec![
                 nsi::Arg::new("renderatlowpriority", &1i32),
-                nsi::Arg::new("bucketorder", nsi::c_str!("circle")),
-                nsi::Arg::new("quality.shadingsamples", &512i32),
+                nsi::Arg::new(
+                    "bucketorder",
+                    nsi::c_str!(self
+                        .config
+                        .nsi
+                        .bucket_order
+                        .as_ref()
+                        .unwrap_or(&"circle".to_string())
+                        .as_str()),
+                ),
+                nsi::Arg::new(
+                    "quality.shadingsamples",
+                    &self.config.nsi.shading_samples.unwrap_or(64),
+                ),
                 nsi::Arg::new("maximumraydepth.reflection", &4i32),
             ],
         );
 
         // Setup an output layer.
         c.create("beauty", &nsi::Node::OutputLayer, nsi::no_arg!());
+        c.connect(
+            "beauty",
+            "",
+            "screen",
+            "outputlayers",
+            nsi::no_arg!(),
+        );
         c.set_attribute(
             "beauty",
             &vec![
@@ -561,15 +687,9 @@ impl Model {
                 nsi::Arg::new("scalarformat", nsi::c_str!("half")),
             ],
         );
-        c.connect(
-            "beauty",
-            "",
-            "screen",
-            "outputlayers",
-            nsi::no_arg!(),
-        );
 
-        if let Some(true) = config.output.i_display {
+        // We add i-display by default.
+        if self.config.output.i_display.unwrap_or(true) {
             // Setup an i-display driver.
             c.create(
                 "display_driver",
@@ -589,7 +709,7 @@ impl Model {
             );
         }
 
-        if let Some(file_name) = &config.output.file_name {
+        if let Some(file_name) = &self.config.output.file_name {
             // Setup an EXR file output driver.
             c.create(
                 "file_driver",
@@ -604,7 +724,7 @@ impl Model {
                 nsi::no_arg!(),
             );
             c.set_attribute(
-                "exr_driver",
+                "file_driver",
                 &vec![
                     nsi::arg!(
                         "imagefilename",
@@ -629,6 +749,7 @@ impl Model {
             nsi::no_arg!(),
         );
 
+        // Particle shader.
         c.create("particle_shader", &nsi::Node::Shader, nsi::no_arg!());
         c.connect(
             "particle_shader",
@@ -650,7 +771,7 @@ impl Model {
                 ),
                 nsi::arg!(
                     "i_color",
-                    &config
+                    &self.config
                         .material
                         .color
                         .unwrap_or([1.0f32, 0.6, 0.3])
@@ -659,18 +780,18 @@ impl Model {
                 //nsi::arg!("coating_thickness", &0.1f32),
                 nsi::arg!(
                     "metallic",
-                    &config.material.metallic.unwrap_or(1.0f32)
+                    &self.config.material.metallic.unwrap_or(1.0f32)
                 ),
                 nsi::arg!(
                     "roughness",
-                    &config.material.roughness.unwrap_or(0.2f32)
+                    &self.config.material.roughness.unwrap_or(0.2f32)
                 ),
                 nsi::arg!(
                     "specular_level",
-                    &config.material.specular_level.unwrap_or(0.9f32)
+                    &self.config.material.specular_level.unwrap_or(0.9f32)
                 ),
-                /*nsi::arg!("incandescence", &[0.8f32, 0.4, 0.2]),
-                 *nsi::arg!("incandescence_intensity", &0.1f32), */
+                //nsi::arg!("incandescence", &[0.8f32, 0.4, 0.2]),
+                //nsi::arg!("incandescence_intensity", &0.1f32), */
             ],
         );
 
@@ -729,7 +850,7 @@ impl Model {
             ],
         );
 
-        if let Some(texture) = &config.environment.texture {
+        if let Some(texture) = &self.config.environment.texture {
             c.set_attribute(
                 "env_shader",
                 &vec![nsi::arg!(

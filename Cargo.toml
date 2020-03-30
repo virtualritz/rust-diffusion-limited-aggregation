@@ -1,25 +1,24 @@
 [package]
 name = "rdla"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Moritz Moeller <virtualritz@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-clap = "*"
-error-chain = "*"
-if_chain = "*"
-indicatif = "*"
-nalgebra = "*"
-nsi = { path="../crates/nsi/" }
-ply-rs = "*"
-rstar = "*"
-random-fast-rng = "*"
-rand = "*"
-serde = "*"
-serde_derive = "*"
-toml = "*"
-tobj = "*"
-
+clap = "2.33.0"
+error-chain = "0.12.2"
+if_chain = "1.0.0"
+indicatif = "0.14.0"
+nalgebra = "0.20.0"
+nsi = "0.1.13"
+ply-rs = "0.1.2"
+rstar = "0.7.1"
+random-fast-rng = "0.1.1"
+rand = "0.7.3"
+serde = "1.0.105"
+serde_derive = "1.0.105"
+toml = "0.5.6"
+tobj = "1.0.0"
 
 [profile.release]
 lto = "on"
