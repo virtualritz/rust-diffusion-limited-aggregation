@@ -7,7 +7,8 @@ use ply_rs::{
     },
     writer::Writer,
 };
-use rand::prelude::*;
+use rand::Rng;
+use rand_xoshiro::{rand_core::SeedableRng, Xoshiro256Plus};
 use rstar::{
     primitives::PointWithData, RStarInsertionStrategy, RTree,
     RTreeParams,
@@ -65,7 +66,7 @@ pub struct Model {
     join_attempts: Vec<u8>,
     particles: Vec<(Point3D, f32)>,
     tree: Tree,
-    rng: StdRng,
+    rng: Xoshiro256Plus,
 }
 
 impl Model {
@@ -91,7 +92,7 @@ impl Model {
             join_attempts: Vec::new(),
             particles: Vec::new(),
             tree: Tree::new_with_params(),
-            rng: StdRng::seed_from_u64(
+            rng: Xoshiro256Plus::seed_from_u64(
                 config.aggregation.random_seed.unwrap_or(42),
             ),
         };
