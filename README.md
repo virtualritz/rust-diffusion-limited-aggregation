@@ -11,11 +11,11 @@ The ɴsɪ crate indirectly depends on
 
 Before you do anything you should
 [download](https://www.3delight.com/download) & install this renderer
-for your platform (Supported: Linux, macOS & Windows).
+for your platform (supported: Linux, macOS & Windows).
 
-It comes with a free 12-core license and a 1,000 minutes worth of cloud
-credits on registration. The latter may come in handy once you start
-experimenting with the ɴsɪ crate or this codebase yourself.
+It comes with a free, 12-core license and a 1,000 (!) minutes worth of
+cloud credits on registration. The latter may come in handy once you
+start experimenting with the ɴsɪ crate or this codebase yourself.
 
 ## Building
 
