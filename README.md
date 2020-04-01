@@ -1,10 +1,12 @@
 # Diffusion Limited Aggregation in Rust
 
-Just to play with something while testing the [ɴsɪ](https://crates.io/crates/nsi) crate.
+Just to play with something while testing the
+[ɴsɪ](https://crates.io/crates/nsi) crate.
 
 ![Result of rendering with 3Delight|NSI from within the tool](dla.jpg)
-2k resolution, 66,666 instances of a scaffoldy dodecahedron. 512 shading, 64 aa-samples.
-Rendered in about one minute via 3Delight Cloud.
+2k resolution, 66,666 instances of a scaffoldy dodecahedron.
+512 shading, 64 aa-samples. Rendered in about one minute via 3Delight
+Cloud. Post-processing in [Darktable](https://www.darktable.org/).
 
 ## Prerequisites
 
@@ -29,8 +31,8 @@ toolchain to `nightly`:
 ```
 
 The space partitioning insertion is extremenly slow for debug builds.
-If you want to generate more than 10k particles doing a release build is
-mandatory.
+If you want to generate more than 10k particles doing a release build
+is mandatory.
 
 Because the crate has link time optimizations enabled the final build
 step may be noticeably slow.
