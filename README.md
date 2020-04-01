@@ -53,8 +53,8 @@ Builds will be in the `./target` folder.
 > – analogously quoting Stanley Ipkiss, ‘The Mask’.
 
 To render in the cloud register at
-[3delight.com](https://www.3delight.com/), open i-display and log in
-with your credentials.
+[3delight.com](https://www.3delight.com/), open the 3Delight Display app
+and log in with your credentials.
 
 Once you have done this all that is needed to launch a render in the
 cloud is to add the `--cloud` flag.
@@ -66,22 +66,21 @@ cloud is to add the `--cloud` flag.
 ## Usage
 
 ```usage
-
 USAGE:
-    rdla [FLAGS] [OPTIONS]
+    rdla [OPTIONS] [SUBCOMMAND]
 
 FLAGS:
-        --cloud      Render using 3Delight|NSI Cloud
     -h, --help       Prints help information
-    -r, --render     Render an image of result with 3Delight|NSI
     -V, --version    Prints version information
-    -v, --verbose    Babble a lot
 
 OPTIONS:
-    -c, --config <FILE>       Sets a custom config file
-    -d, --dump <FILE>         Dump the result into an .nsi stream or
-                              into a Standford .ply file.
-    -p, --particles <ITER>    Number of particles to generate
+    -c, --config <FILE>    Sets a custom config file
+    -p, --particles <N>    Number of particles to generate (default: 1000)
+
+SUBCOMMANDS:
+    dump      Dump the result into an .nsi stream or into a Standford .ply file
+    help      Prints this message or the help of the given subcommand(s)
+    render    Render an image of result with 3Delight
 ```
 
 ## Config File
@@ -97,8 +96,8 @@ This can be overridden with the `--config` flag.
     random_seed = 42
     particles = 10000
     # Spacing can be changed over the iteration.
-    # The 1st value is used for the first particle placed
-    # and the last for the last particle placed. In between,
+    # The 1st value is used for the first particle place
+    # and the last for the last particle. In between,
     # spacing is linearly interpolated.
     spacing = [1.0, 1.0]
     attraction_distance = 3.0
@@ -107,39 +106,42 @@ This can be overridden with the `--config` flag.
     stickiness = 1.0
 
     [aggregation.start_shape]
-        shape = "point" # supported "ring"
-        diameter = 0 # diameter of "ring"
-        particles = 1 # number of particles distributed on
-                      # "ring"
+        # Try using "ring".
+        shape = "point"
+        # "ring" diameter.
+        diameter = 0
+        # "ring no. of particles.
+        particles = 1
 
 [particle]
     # Scale can be changed over the iteration.
     # The 1st value is used for the first particle placed
-    # and the last for the last particle placed. In between,
+    # and the last for the last particle. In between,
     # scale is linearly interpolated.
     scale = [2.0, 2.0]
     # A wavefront OBJ (converted to triangles for now)
-    # to instace instead of a particle.
-    instance_geo = "dodeca.obj"
+    # to instace instead of a sphere particle.
+    instance_geo = "" # "assets/cube.obj"
     subidivsion = true
 
 [material]
-    color = [0.8, 0.8, 0.8]
+    color = [0.5, 0.6, 0.8]
     roughness = 0.3
     metallic = 1.0
     specular_level = 0.8
 
 [environment]
-    texture = ""
+    texture = "assets/artist_workshop_1k.tdl"
     intensity = 1.2
 
-[nsi]
+[nsi_render]
+    # Images are square
     resolution = 2048
-    shading_samples = 32
-    oversampling = 64
+    shading_samples = 100
+    oversampling = 20
     bucket_order = "circle"
 
-[output]
-    file_name = "foobar.exr"
-    i_display = true
+    [nsi_render.output]
+        file_name = "out.exr"
+        display = false
 ```

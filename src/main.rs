@@ -176,7 +176,7 @@ fn run() -> Result<()> {
             }
         }
         ("", None) => {
-            eprintln!("No subcommand given. Please specify at least one of 'render' or 'dump'.")
+            eprintln!("No subcommand given. Please specify at least one of 'help, 'render' or 'dump'.")
         }
         _ => unreachable!(),
     }

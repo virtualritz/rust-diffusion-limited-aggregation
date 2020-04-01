@@ -49,5 +49,5 @@
     bucket_order = "circle"
 
     [nsi_render.output]
-        file_name = "foobar.exr"
+        file_name = "out.exr"
         display = false
