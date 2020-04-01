@@ -182,75 +182,15 @@ impl Model {
 
             progress_bar.inc(1);
         }
-    }
 
-    /// Add a prticle to the model 'manually'.
-    pub fn add(&mut self, point: &Point3D, scale: f32) {
-        let index = self.particles.len();
-        self.tree.insert(PointWithData::new(
-            index,
-            [point.x, point.y, point.z],
-        ));
-        self.particles.push((*point, scale));
-        self.join_attempts.push(0);
-        self.bounding_radius = self
-            .bounding_radius
-            .max(point.magnitude() + self.attraction_distance);
-    }
-
-    /// Diffuses one new particle and adds it to the model.
-    pub fn diffuse_particle(&mut self, scale: f32) {
-        // compute particle starting location
-        let particle: &mut Point3D = &mut self.random_particle();
-
-        // do the random walk
-        loop {
-            // get distance to nearest other particle
-            let parent = self.nearest_particle(&particle);
-            let distance_squared = (*particle
-                - self.particles[parent].0)
-                .magnitude_squared();
-
-            // check if close enough to join
-            if distance_squared < self.attraction_distance.square() {
-                if !self.should_join(parent) {
-                    // push particle away a bit
-                    *particle = lerp_points(
-                        &self.particles[parent].0,
-                        &particle,
-                        self.attraction_distance
-                            + self.repulsion_distance,
-                    );
-                    continue;
-                }
-
-                // adjust particle position in relation to its parent
-                *particle = self.place_particle(&particle, parent);
-
-                // add the point
-                self.add(&particle, scale); //, parent);
-                break;
-            }
-
-            // move randomly
-            let move_magnitude = self.repulsion_distance.max(
-                distance_squared.sqrt() - self.attraction_distance,
-            );
-            *particle +=
-                move_magnitude * self.random_point_on_unit_sphere();
-
-            // reset to a new random particle if is too far away
-            if self.out_of_bounds(&particle) {
-                *particle = self.random_particle();
-            }
-        }
+        progress_bar.finish();
     }
 
     /// Renders the scene via 3Delight|NSI.
-    pub fn render_nsi(&self) {
+    pub fn render_nsi(&mut self) {
         // Create rendering context.
         let c = {
-            if self.config.cloud_render.unwrap() {
+            if self.config.nsi_render.output.cloud_render.unwrap() {
                 nsi::Context::new(&vec![
                     nsi::arg!("cloud", &1i32),
                     nsi::arg!("software", nsi::c_str!("HOUDINI")),
@@ -264,7 +204,7 @@ impl Model {
         self.output_scene_nsi(&c);
     }
 
-    pub fn write_nsi(&self, path: &Path) {
+    pub fn write_nsi(&mut self, path: &Path) {
         let c = nsi::Context::new(&vec![nsi::arg!(
             "streamfilename",
             nsi::c_str!(path.to_str().unwrap())
@@ -336,6 +276,68 @@ impl Model {
 
         let w = Writer::new();
         w.write_ply(&mut buffer, &mut ply);
+    }
+
+    /// Add a prticle to the model 'manually'.
+    fn add(&mut self, point: &Point3D, scale: f32) {
+        let index = self.particles.len();
+        self.tree.insert(PointWithData::new(
+            index,
+            [point.x, point.y, point.z],
+        ));
+        self.particles.push((*point, scale));
+        self.join_attempts.push(0);
+        self.bounding_radius = self
+            .bounding_radius
+            .max(point.magnitude() + self.attraction_distance);
+    }
+
+    /// Diffuses one new particle and adds it to the model.
+    fn diffuse_particle(&mut self, scale: f32) {
+        // compute particle starting location
+        let particle: &mut Point3D = &mut self.random_particle();
+
+        // do the random walk
+        loop {
+            // get distance to nearest other particle
+            let parent = self.nearest_particle(&particle);
+            let distance_squared = (*particle
+                - self.particles[parent].0)
+                .magnitude_squared();
+
+            // check if close enough to join
+            if distance_squared < self.attraction_distance.square() {
+                if !self.should_join(parent) {
+                    // push particle away a bit
+                    *particle = lerp_points(
+                        &self.particles[parent].0,
+                        &particle,
+                        self.attraction_distance
+                            + self.repulsion_distance,
+                    );
+                    continue;
+                }
+
+                // adjust particle position in relation to its parent
+                *particle = self.place_particle(&particle, parent);
+
+                // add the point
+                self.add(&particle, scale); //, parent);
+                break;
+            }
+
+            // move randomly
+            let move_magnitude = self.repulsion_distance.max(
+                distance_squared.sqrt() - self.attraction_distance,
+            );
+            *particle +=
+                move_magnitude * self.random_point_on_unit_sphere();
+
+            // reset to a new random particle if is too far away
+            if self.out_of_bounds(&particle) {
+                *particle = self.random_particle();
+            }
+        }
     }
 
     /// Returns the index of the nearest neighbour.
@@ -451,7 +453,7 @@ impl Model {
         }
     }
 
-    fn output_scene_nsi(&self, c: &nsi::Context) {
+    fn output_scene_nsi(&mut self, c: &nsi::Context) {
         if_chain! {
             if let Some(instance_geo) = &self.config.particle.instance_geo;
             if let instance_geo_path = Path::new(&instance_geo);
@@ -547,6 +549,8 @@ impl Model {
             }
         }
 
+        self.particles.clear();
+
         // Get 3Delight path to find shaders.
         let delight = {
             match env::var("DELIGHT") {
@@ -619,7 +623,8 @@ impl Model {
         c.create("screen", &nsi::Node::Screen, nsi::no_arg!());
         c.connect("screen", "", "camera", "screens", nsi::no_arg!());
 
-        let resolution = self.config.nsi.resolution.unwrap_or(2048);
+        let resolution =
+            self.config.nsi_render.resolution.unwrap_or(2048);
         c.set_attribute(
             "screen",
             &vec![
@@ -627,7 +632,7 @@ impl Model {
                     .set_tuple_len(2),
                 nsi::Arg::new(
                     "oversampling",
-                    &self.config.nsi.oversampling.unwrap_or(64),
+                    &self.config.nsi_render.oversampling.unwrap_or(64),
                 ),
             ],
         );
@@ -640,7 +645,7 @@ impl Model {
                     "bucketorder",
                     nsi::c_str!(self
                         .config
-                        .nsi
+                        .nsi_render
                         .bucket_order
                         .as_ref()
                         .unwrap_or(&"circle".to_string())
@@ -648,7 +653,11 @@ impl Model {
                 ),
                 nsi::Arg::new(
                     "quality.shadingsamples",
-                    &self.config.nsi.shading_samples.unwrap_or(64),
+                    &self
+                        .config
+                        .nsi_render
+                        .shading_samples
+                        .unwrap_or(64),
                 ),
                 nsi::Arg::new("maximumraydepth.reflection", &4i32),
             ],
@@ -673,7 +682,7 @@ impl Model {
         );
 
         // We add i-display by default.
-        if self.config.output.i_display.unwrap_or(true) {
+        if self.config.nsi_render.output.display.unwrap_or(true) {
             // Setup an i-display driver.
             c.create(
                 "display_driver",
@@ -693,7 +702,9 @@ impl Model {
             );
         }
 
-        if let Some(file_name) = &self.config.output.file_name {
+        if let Some(file_name) =
+            &self.config.nsi_render.output.file_name
+        {
             // Setup an EXR file output driver.
             c.create(
                 "file_driver",

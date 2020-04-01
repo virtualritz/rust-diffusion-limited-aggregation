@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{load_yaml, App};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde_derive::Deserialize;
 use std::io::Write;
@@ -25,17 +25,16 @@ pub struct Config {
     particle: Particle,
     material: Material,
     environment: Environment,
-    nsi: Nsi,
-    output: Output,
-    cloud_render: Option<bool>,
+    nsi_render: NsiRender,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
-struct Nsi {
+struct NsiRender {
     resolution: Option<u32>,
     shading_samples: Option<u32>,
     oversampling: Option<u32>,
     bucket_order: Option<String>,
+    output: Output,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
@@ -82,7 +81,8 @@ struct StartShape {
 #[derive(Clone, Debug, Default, Deserialize)]
 struct Output {
     file_name: Option<String>,
-    i_display: Option<bool>,
+    cloud_render: Option<bool>,
+    display: Option<bool>,
 }
 
 mod dla;
@@ -109,56 +109,11 @@ fn main() {
 }
 
 fn run() -> Result<()> {
-    let arg = App::new("rdla")
-        .version("0.2.0")
-        .author("Moritz Moeller <virtualritz@protonmail.com>")
-        .about("Creates a point cloud based on diffusion limited aggregation.")
-        /*.arg(
-            Arg::with_name("verbose")
-                .short("v")
-                .long("verbose")
-                .help("Babble a lot"),
-        )*/
-        // FIXME: add render subcommand
-        .arg(
-            Arg::with_name("render")
-                .short("r")
-                .long("render")
-                .help("Render an image of result with 3Delight|NSI"),
-        )
-        // FIXME: add dump subcommand
-        .arg(
-            Arg::with_name("dump")
-                .short("d")
-                .long("dump")
-                .value_name("FILE")
-                .takes_value(true)
-                .help("Dump the result into an .nsi stream or into a Standford .ply file"),
-        )
-        .arg(
-            Arg::with_name("config")
-               .short("c")
-               .long("config")
-               .value_name("FILE")
-               .help("Sets a custom config file")
-               .takes_value(true))
-        .arg(
-            Arg::with_name("cloud")
-                .long("cloud")
-                .help("Render using 3Delight|NSI Cloud"),
-        )
-        .arg(
-            Arg::with_name("particles")
-                .short("p")
-                .long("particles")
-                .help("Number of particles to generate (default: 1000)")
-                .value_name("N")
-                .takes_value(true),
-        )
-        .get_matches();
+    let yaml = load_yaml!("cli.yml");
+    let app = App::from_yaml(yaml).get_matches();
 
     // Read config file (if it exists).
-    let config_file = arg.value_of("config").unwrap_or("rdla.toml");
+    let config_file = app.value_of("config").unwrap_or("rdla.toml");
 
     let mut config: Config = {
         if let Ok(mut file) = File::open(config_file) {
@@ -182,31 +137,48 @@ fn run() -> Result<()> {
     };
 
     // Override resp. config settings with command line args.
-    if let Some(particles) = arg.value_of("particles") {
+    if let Some(particles) = app.value_of("particles") {
         config.aggregation.particles = Some(particles.parse::<u32>()?);
     }
 
-    // We do not allow the cloud option from the config file.
-    // It has to be specified from the command line.
-    config.cloud_render = Some(arg.is_present("cloud"));
+    match app.subcommand() {
+        ("render", Some(render_args)) => {
+            if render_args.is_present("cloud") {
+                config.nsi_render.output.cloud_render = Some(true);
+            // We do not allow the cloud option from the config file.
+            // It has to be specified from the command line.
+            } else {
+                config.nsi_render.output.cloud_render = Some(false);
+            }
+            if render_args.is_present("display") {
+                config.nsi_render.output.display = Some(true);
+            }
 
-    let mut model = dla::Model::new(&mut config);
+            if let Some(file_name) = render_args.value_of("FILE") {
+                config.nsi_render.output.file_name =
+                    Some(file_name.to_string());
+            }
 
-    model.run();
-
-    if arg.is_present("render") {
-        model.render_nsi();
-    }
-
-    if let Some(file_name) = arg.value_of("dump") {
-        let path = Path::new(file_name);
-
-        if "ply" == path.extension().unwrap() {
-            model.write_ply(&path);
-        } else {
-            model.write_nsi(&path);
+            let mut model = dla::Model::new(&mut config);
+            model.run();
+            model.render_nsi();
         }
-    }
+        ("dump", Some(dump_args)) => {
+            let path = Path::new(dump_args.value_of("FILE").unwrap());
 
+            let mut model = dla::Model::new(&mut config);
+            model.run();
+
+            if "ply" == path.extension().unwrap() {
+                model.write_ply(&path);
+            } else {
+                model.write_nsi(&path);
+            }
+        }
+        ("", None) => {
+            eprintln!("No subcommand given. Please specify at least one of 'render' or 'dump'.")
+        }
+        _ => unreachable!(),
+    }
     Ok(())
 }

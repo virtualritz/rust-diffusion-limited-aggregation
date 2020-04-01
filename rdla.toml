@@ -13,8 +13,11 @@
     stickiness = 1.0
 
     [aggregation.start_shape]
+        # Try using "ring".
         shape = "point"
+        # "ring" diameter.
         diameter = 0
+        # "ring no. of particles.
         particles = 1
 
 [particle]
@@ -38,12 +41,13 @@
     texture = "assets/artist_workshop_1k.tdl"
     intensity = 1.2
 
-[nsi]
+[nsi_render]
+    # Images are square
     resolution = 2048
-    shading_samples = 32
-    oversampling = 64
+    shading_samples = 100
+    oversampling = 20
     bucket_order = "circle"
 
-[output]
-    file_name = "foobar.exr"
-    i_display = true
+    [nsi_render.output]
+        file_name = "foobar.exr"
+        display = false

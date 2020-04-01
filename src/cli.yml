@@ -1,0 +1,39 @@
+name: rdla
+version: 0.2.0
+author: Moritz Moeller <virtualritz@protonmail.com>
+about: Creates & renders point clouds based on diffusion limited aggregation.")
+args:
+    - config:
+        short: c
+        long: config
+        value_name: FILE
+        help: Sets a custom config file
+        takes_value: true
+    - particles:
+        short: p
+        long: particles
+        help: "Number of particles to generate (default: 1000)"
+        value_name: N
+        takes_value: true
+subcommands:
+    - render:
+        about: Render an image of result with 3Delight
+        args:
+            - cloud:
+                long: cloud
+                help: Render using 3Delight Cloud
+            - display:
+                short: d
+                long: display
+                help: Open a 3Delight Display
+            - FILE:
+                required: false
+                index: 1
+                help: "Image file name to render to (default: out.exr)"
+    - dump:
+        about: "Dump the result into an .nsi stream or into a Standford .ply file"
+        args:
+            - FILE:
+                required: true
+                index: 1
+                help: File name of dump; extension determines format to use
