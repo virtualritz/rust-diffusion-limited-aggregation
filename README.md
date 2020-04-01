@@ -3,6 +3,8 @@
 Just to play with something while testing the [ɴsɪ](https://crates.io/crates/nsi) crate.
 
 ![Result of rendering with 3Delight|NSI from within the tool](dla.jpg)
+2k resolution, 66,666 instances of a scaffoldy dodecahedron. 512 shading, 64 aa-samples.
+Rendered in about one minute via 3Delight Cloud.
 
 ## Prerequisites
 
