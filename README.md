@@ -13,9 +13,13 @@ Cloud. Post-processing in [Darktable](https://www.darktable.org/).
 The ɴsɪ crate indirectly depends on
 [3Delight](https://www.3delight.com/) being installed.
 
-Before you do anything you should
+Before you do anything you must
 [download](https://www.3delight.com/download) & install this renderer
 for your platform (supported: Linux, macOS & Windows).
+Otherwise the build of the `nsi-sys` crate will fail. 
+
+I'm in talks with the makers of this renderer to suppliy developer 
+packages that will render this step superfluous (pun intended).
 
 It comes with a free, 12-core license and 1,000 (!) minutes worth of
 cloud credits on registration. The latter may come in handy once you
