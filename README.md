@@ -86,7 +86,7 @@ OPTIONS:
     -p, --particles <N>    Number of particles to generate (default: 1000)
 
 SUBCOMMANDS:
-    dump      Dump the result into an .nsi stream or into a Standford .ply file
+    dump      Dump the result into an .nsi stream or into a Stanford .ply file
     help      Prints this message or the help of the given subcommand(s)
     render    Render an image of result with 3Delight
 ```
