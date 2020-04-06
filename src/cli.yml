@@ -31,7 +31,7 @@ subcommands:
                 index: 1
                 help: "Image file name to render to (default: out.exr)"
     - dump:
-        about: "Dump the result into an .nsi stream or into a Standford .ply file"
+        about: "Dump the result into an .nsi stream or into a Stanford .ply file"
         args:
             - FILE:
                 required: true

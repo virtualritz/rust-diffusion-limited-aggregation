@@ -41,8 +41,15 @@ struct NsiRender {
 struct Material {
     color: Option<[f32; 3]>,
     roughness: Option<f32>,
-    metallic: Option<f32>,
     specular_level: Option<f32>,
+    metallic: Option<f32>,
+    anisotropy: Option<f32>,
+    sss_weight: Option<f32>,
+    sss_color: Option<[f32; 3]>,
+    sss_scale: Option<f32>,
+    incandescence: Option<[f32; 3]>,
+    incandescence_intensity: Option<f32>,
+    incandescence_multiplier: Option<[f32; 3]>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]

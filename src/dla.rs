@@ -405,7 +405,12 @@ impl Model {
         instance_obj_path: &Path,
     ) {
         let object = tobj::load_obj(instance_obj_path);
-        if !object.is_ok() {
+        if let Err(e) = object {
+            eprintln!(
+                "Error loading '{}': {}",
+                instance_obj_path.display(),
+                e
+            );
             return;
         }
         let (models, _materials) = object.unwrap();
@@ -773,18 +778,50 @@ impl Model {
                 )
                 .set_type(nsi::Type::Color),
                 //nsi::arg!("coating_thickness", &0.1f32),
-                nsi::arg!(
-                    "metallic",
-                    &self.config.material.metallic.unwrap_or(1.0f32)
-                ),
+
                 nsi::arg!(
                     "roughness",
-                    &self.config.material.roughness.unwrap_or(0.2f32)
+                    &self.config.material.roughness.unwrap_or(0.0f32)
                 ),
                 nsi::arg!(
                     "specular_level",
-                    &self.config.material.specular_level.unwrap_or(0.9f32)
+                    &self.config.material.specular_level.unwrap_or(0.5f32)
                 ),
+                nsi::arg!(
+                    "metallic",
+                    &self.config.material.metallic.unwrap_or(0.0f32)
+                ),
+                nsi::arg!(
+                    "anisotropy",
+                    &self.config.material.anisotropy.unwrap_or(0.0f32)
+                ),
+                nsi::arg!(
+                    "sss_weight",
+                    &self.config.material.sss_weight.unwrap_or(0.0f32)
+                ),
+                nsi::arg!(
+                    "sss_color",
+                    &self.config.material.sss_color.unwrap_or([0.5f32, 0.5, 0.5])
+                ).
+                set_type(nsi::Type::Color),
+                nsi::arg!(
+                    "sss_scale",
+                    &self.config.material.sss_scale.unwrap_or(0.0f32)
+                ),
+                nsi::arg!(
+                    "incandescence",
+                    &self.config.material.incandescence.unwrap_or([0.0f32, 0.0, 0.0])
+                ).
+                set_type(nsi::Type::Color),
+                nsi::arg!(
+                    "incandescence_intensity",
+                    &self.config.material.incandescence_intensity.unwrap_or(0.0f32)
+                ),
+                nsi::arg!(
+                    "incandescence_multiplier",
+                    &self.config.material.incandescence_multiplier.unwrap_or([1.0f32, 1.0, 1.0])
+                ).
+                set_type(nsi::Type::Color),
                 //nsi::arg!("incandescence", &[0.8f32, 0.4, 0.2]),
                 //nsi::arg!("incandescence_intensity", &0.1f32), */
             ],
