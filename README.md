@@ -56,7 +56,7 @@ Builds will be in the `./target` folder.
 ### Cloud Rendering
 
 > “Hold on to you lug nuts it’s time for an overhaul [of your idea of
-> what consitutes fast rendering]!”
+> what constitutes fast rendering]!”
 >
 > – analogously quoting Stanley Ipkiss, ‘The Mask’.
 

@@ -1,9 +1,11 @@
+/*
 #[cfg(target_os = "macos")]
 extern crate jemallocator;
 
 #[cfg(target_os = "macos")]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+*/
 
 use clap::{load_yaml, App};
 use indicatif::{ProgressBar, ProgressStyle};
