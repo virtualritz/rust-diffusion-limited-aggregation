@@ -1,13 +1,13 @@
 name: rdla
 version: 0.2.1
 author: Moritz Moeller <virtualritz@protonmail.com>
-about: Creates & renders point clouds based on diffusion limited aggregation.")
+about: Creates & renders point clouds based on diffusion limited aggregation.
 args:
     - config:
         short: c
         long: config
         value_name: FILE
-        help: Sets a custom config file
+        help: "Sets a custom config file (default: ./rdla.toml)"
         takes_value: true
     - particles:
         short: p
