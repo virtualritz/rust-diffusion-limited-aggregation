@@ -2,18 +2,15 @@ use nalgebra::Vector3;
 use nsi;
 use ply_rs::{
     ply::{
-        Addable, DefaultElement, ElementDef, Encoding, Ply, Property,
-        PropertyDef, PropertyType, ScalarType,
+        Addable, DefaultElement, ElementDef, Encoding, Ply, Property, PropertyDef, PropertyType,
+        ScalarType,
     },
     writer::Writer,
 };
 use rand::{distributions::Distribution, Rng};
 use rand_distr::UnitSphere;
 use rand_xoshiro::{rand_core::SeedableRng, Xoshiro256Plus};
-use rstar::{
-    primitives::PointWithData, RStarInsertionStrategy, RTree,
-    RTreeParams,
-};
+use rstar::{primitives::PointWithData, RStarInsertionStrategy, RTree, RTreeParams};
 use std::{env, fs::File, path::Path};
 use tobj;
 
@@ -76,14 +73,8 @@ impl Model {
             // Parameters from config.
             config: config.clone(),
 
-            attraction_distance: config
-                .aggregation
-                .attraction_distance
-                .unwrap_or(3.0),
-            repulsion_distance: config
-                .aggregation
-                .repulsion_distance
-                .unwrap_or(1.0),
+            attraction_distance: config.aggregation.attraction_distance.unwrap_or(3.0),
+            repulsion_distance: config.aggregation.repulsion_distance.unwrap_or(1.0),
             stubbornness: config.aggregation.stubbornness.unwrap_or(0),
             stickiness: config.aggregation.stickiness.unwrap_or(1.0),
             // Parameters modified during run().
@@ -93,23 +84,19 @@ impl Model {
             join_attempts: Vec::new(),
             particles: Vec::new(),
             tree: Tree::new_with_params(),
-            rng: Xoshiro256Plus::seed_from_u64(
-                config.aggregation.random_seed.unwrap_or(42),
-            ),
+            rng: Xoshiro256Plus::seed_from_u64(config.aggregation.random_seed.unwrap_or(42)),
         };
         model
     }
 
     pub fn run(&mut self) {
-        let mut number_of_particles =
-            self.config.aggregation.particles.unwrap_or(1000);
+        let mut number_of_particles = self.config.aggregation.particles.unwrap_or(1000);
 
-        let progress_bar =
-            if self.config.aggregation.show_progress.unwrap_or(true) {
-                ProgressBar::new(number_of_particles as u64)
-            } else {
-                ProgressBar::hidden()
-            };
+        let progress_bar = if self.config.aggregation.show_progress.unwrap_or(true) {
+            ProgressBar::new(number_of_particles as u64)
+        } else {
+            ProgressBar::hidden()
+        };
 
         progress_bar.set_style(
             ProgressStyle::default_bar()
@@ -139,12 +126,7 @@ impl Model {
                     .unwrap_or(100.0)
                     * 0.5;
 
-                let n = self
-                    .config
-                    .aggregation
-                    .start_shape
-                    .particles
-                    .unwrap_or(360);
+                let n = self.config.aggregation.start_shape.particles.unwrap_or(360);
 
                 for i in 0..n {
                     let t = i as f32 / n as f32;
@@ -171,8 +153,7 @@ impl Model {
                 p as f32 / number_of_particles as f32,
             ));
 
-            let spacing =
-                self.config.aggregation.spacing.unwrap_or([1.0f32; 2]);
+            let spacing = self.config.aggregation.spacing.unwrap_or([1.0f32; 2]);
 
             self.particle_spacing = lerp(
                 spacing[0],
@@ -224,8 +205,7 @@ impl Model {
                 .comments
                 .push("Reaction limited diffusion".to_string());
 
-            let mut point_element =
-                ElementDef::new("point".to_string());
+            let mut point_element = ElementDef::new("point".to_string());
 
             point_element.properties.add(PropertyDef::new(
                 "x".to_string(),
@@ -246,18 +226,9 @@ impl Model {
 
             for particle in &self.particles {
                 let mut point = DefaultElement::new();
-                point.insert(
-                    "x".to_string(),
-                    Property::Float(particle.0.x),
-                );
-                point.insert(
-                    "y".to_string(),
-                    Property::Float(particle.0.y),
-                );
-                point.insert(
-                    "z".to_string(),
-                    Property::Float(particle.0.z),
-                );
+                point.insert("x".to_string(), Property::Float(particle.0.x));
+                point.insert("y".to_string(), Property::Float(particle.0.y));
+                point.insert("z".to_string(), Property::Float(particle.0.z));
                 points.push(point);
             }
 
@@ -281,10 +252,8 @@ impl Model {
     /// Add a prticle to the model 'manually'.
     fn add(&mut self, point: &Point3D, scale: f32) {
         let index = self.particles.len();
-        self.tree.insert(PointWithData::new(
-            index,
-            [point.x, point.y, point.z],
-        ));
+        self.tree
+            .insert(PointWithData::new(index, [point.x, point.y, point.z]));
         self.particles.push((*point, scale));
         self.join_attempts.push(0);
         self.bounding_radius = self
@@ -301,9 +270,7 @@ impl Model {
         loop {
             // get distance to nearest other particle
             let parent = self.nearest_particle(&particle);
-            let distance_squared = (*particle
-                - self.particles[parent].0)
-                .magnitude_squared();
+            let distance_squared = (*particle - self.particles[parent].0).magnitude_squared();
 
             // check if close enough to join
             if distance_squared < self.attraction_distance.square() {
@@ -312,8 +279,7 @@ impl Model {
                     *particle = lerp_points(
                         &self.particles[parent].0,
                         &particle,
-                        self.attraction_distance
-                            + self.repulsion_distance,
+                        self.attraction_distance + self.repulsion_distance,
                     );
                     continue;
                 }
@@ -327,11 +293,10 @@ impl Model {
             }
 
             // move randomly
-            let move_magnitude = self.repulsion_distance.max(
-                distance_squared.sqrt() - self.attraction_distance,
-            );
-            *particle +=
-                move_magnitude * self.random_point_on_unit_sphere();
+            let move_magnitude = self
+                .repulsion_distance
+                .max(distance_squared.sqrt() - self.attraction_distance);
+            *particle += move_magnitude * self.random_point_on_unit_sphere();
 
             // reset to a new random particle if is too far away
             if self.out_of_bounds(&particle) {
@@ -367,8 +332,7 @@ impl Model {
     /// too far outside the current bounding sphere.
     #[inline]
     fn out_of_bounds(&self, point: &Point3D) -> bool {
-        point.magnitude_squared()
-            > (self.bounding_radius * 2.0).square()
+        point.magnitude_squared() > (self.bounding_radius * 2.0).square()
     }
 
     /// Returns true if the point should attach to the specified
@@ -387,11 +351,7 @@ impl Model {
 
     /// Computes the final placement of the particle.
     #[inline]
-    fn place_particle(
-        &self,
-        point: &Point3D,
-        parent: Index,
-    ) -> Point3D {
+    fn place_particle(&self, point: &Point3D, parent: Index) -> Point3D {
         lerp_points(
             &self.particles[parent as usize].0,
             point,
@@ -399,18 +359,10 @@ impl Model {
         )
     }
 
-    fn instance_obj_nsi(
-        &self,
-        c: &nsi::Context,
-        instance_obj_path: &Path,
-    ) {
-        let object = tobj::load_obj(instance_obj_path);
+    fn instance_obj_nsi(&self, c: &nsi::Context, instance_obj_path: &Path) {
+        let object = tobj::load_obj(instance_obj_path, false);
         if let Err(e) = object {
-            eprintln!(
-                "Error loading '{}': {}",
-                instance_obj_path.display(),
-                e
-            );
+            eprintln!("Error loading '{}': {}", instance_obj_path.display(), e);
             return;
         }
         let (models, _materials) = object.unwrap();
@@ -419,22 +371,14 @@ impl Model {
         for model in models {
             let mesh = &model.mesh;
 
-            c.create(
-                model.name.as_str(),
-                &nsi::Node::Mesh,
-                nsi::no_arg!(),
-            );
+            c.create(model.name.as_str(), &nsi::Node::Mesh, nsi::no_arg!());
 
             c.set_attribute(
                 model.name.as_str(),
                 &vec![
-                    nsi::arg!("P", &mesh.positions)
-                        .set_type(nsi::Type::Point),
+                    nsi::arg!("P", &mesh.positions).set_type(nsi::Type::Point),
                     nsi::arg!("P.indices", &mesh.indices),
-                    nsi::arg!(
-                        "nvertices",
-                        &vec![3i32; mesh.indices.len() / 3]
-                    ),
+                    nsi::arg!("nvertices", &mesh.num_face_indices),
                 ],
             );
 
@@ -574,13 +518,7 @@ impl Model {
 
         // Setup a camera transform.
         c.create("camera_xform", &nsi::Node::Transform, nsi::no_arg!());
-        c.connect(
-            "camera_xform",
-            "",
-            ".root",
-            "objects",
-            nsi::no_arg!(),
-        );
+        c.connect("camera_xform", "", ".root", "objects", nsi::no_arg!());
 
         c.set_attribute(
             "camera_xform",
@@ -609,32 +547,20 @@ impl Model {
         );
 
         // Setup a camera.
-        c.create(
-            "camera",
-            &nsi::Node::PerspectiveCamera,
-            nsi::no_arg!(),
-        );
+        c.create("camera", &nsi::Node::PerspectiveCamera, nsi::no_arg!());
 
         c.set_attribute("camera", &vec![nsi::Arg::new("fov", &30f32)]);
-        c.connect(
-            "camera",
-            "",
-            "camera_xform",
-            "objects",
-            nsi::no_arg!(),
-        );
+        c.connect("camera", "", "camera_xform", "objects", nsi::no_arg!());
 
         // Setup a screen.
         c.create("screen", &nsi::Node::Screen, nsi::no_arg!());
         c.connect("screen", "", "camera", "screens", nsi::no_arg!());
 
-        let resolution =
-            self.config.nsi_render.resolution.unwrap_or(2048);
+        let resolution = self.config.nsi_render.resolution.unwrap_or(2048);
         c.set_attribute(
             "screen",
             &vec![
-                nsi::Arg::new("resolution", &[resolution, resolution])
-                    .set_tuple_len(2),
+                nsi::Arg::new("resolution", &[resolution, resolution]).set_tuple_len(2),
                 nsi::Arg::new(
                     "oversampling",
                     &self.config.nsi_render.oversampling.unwrap_or(64),
@@ -658,25 +584,15 @@ impl Model {
                 ),
                 nsi::Arg::new(
                     "quality.shadingsamples",
-                    &self
-                        .config
-                        .nsi_render
-                        .shading_samples
-                        .unwrap_or(64),
+                    &self.config.nsi_render.shading_samples.unwrap_or(64),
                 ),
-                nsi::Arg::new("maximumraydepth.reflection", &4i32),
+                nsi::Arg::new("maximumraydepth.reflection", &6i32),
             ],
         );
 
         // Setup an output layer.
         c.create("beauty", &nsi::Node::OutputLayer, nsi::no_arg!());
-        c.connect(
-            "beauty",
-            "",
-            "screen",
-            "outputlayers",
-            nsi::no_arg!(),
-        );
+        c.connect("beauty", "", "screen", "outputlayers", nsi::no_arg!());
         c.set_attribute(
             "beauty",
             &vec![
@@ -689,11 +605,7 @@ impl Model {
         // We add i-display by default.
         if self.config.nsi_render.output.display.unwrap_or(true) {
             // Setup an i-display driver.
-            c.create(
-                "display_driver",
-                &nsi::Node::OutputDriver,
-                nsi::no_arg!(),
-            );
+            c.create("display_driver", &nsi::Node::OutputDriver, nsi::no_arg!());
             c.connect(
                 "display_driver",
                 "",
@@ -707,40 +619,21 @@ impl Model {
             );
         }
 
-        if let Some(file_name) =
-            &self.config.nsi_render.output.file_name
-        {
+        if let Some(file_name) = &self.config.nsi_render.output.file_name {
             // Setup an EXR file output driver.
-            c.create(
-                "file_driver",
-                &nsi::Node::OutputDriver,
-                nsi::no_arg!(),
-            );
-            c.connect(
-                "file_driver",
-                "",
-                "beauty",
-                "outputdrivers",
-                nsi::no_arg!(),
-            );
+            c.create("file_driver", &nsi::Node::OutputDriver, nsi::no_arg!());
+            c.connect("file_driver", "", "beauty", "outputdrivers", nsi::no_arg!());
             c.set_attribute(
                 "file_driver",
                 &vec![
-                    nsi::arg!(
-                        "imagefilename",
-                        nsi::c_str!(file_name.as_str())
-                    ),
+                    nsi::arg!("imagefilename", nsi::c_str!(file_name.as_str())),
                     nsi::arg!("drivername", nsi::c_str!("exr")),
                 ],
             );
         }
 
         // Particle attributes.
-        c.create(
-            "particle_attrib",
-            &nsi::Node::Attributes,
-            nsi::no_arg!(),
-        );
+        c.create("particle_attrib", &nsi::Node::Attributes, nsi::no_arg!());
         c.connect(
             "particle_attrib",
             "",
@@ -764,21 +657,14 @@ impl Model {
             &vec![
                 nsi::arg!(
                     "shaderfilename",
-                    nsi::c_str!(shader_searchpath
-                        .join("dlPrincipled")
-                        .to_str()
-                        .unwrap())
+                    nsi::c_str!(shader_searchpath.join("dlPrincipled").to_str().unwrap())
                 ),
                 nsi::arg!(
                     "i_color",
-                    &self.config
-                        .material
-                        .color
-                        .unwrap_or([1.0f32, 0.6, 0.3])
+                    &self.config.material.color.unwrap_or([1.0f32, 0.6, 0.3])
                 )
                 .set_type(nsi::Type::Color),
                 //nsi::arg!("coating_thickness", &0.1f32),
-
                 nsi::arg!(
                     "roughness",
                     &self.config.material.roughness.unwrap_or(0.0f32)
@@ -787,10 +673,7 @@ impl Model {
                     "specular_level",
                     &self.config.material.specular_level.unwrap_or(0.5f32)
                 ),
-                nsi::arg!(
-                    "metallic",
-                    &self.config.material.metallic.unwrap_or(0.0f32)
-                ),
+                nsi::arg!("metallic", &self.config.material.metallic.unwrap_or(0.0f32)),
                 nsi::arg!(
                     "anisotropy",
                     &self.config.material.anisotropy.unwrap_or(0.0f32)
@@ -802,26 +685,38 @@ impl Model {
                 nsi::arg!(
                     "sss_color",
                     &self.config.material.sss_color.unwrap_or([0.5f32, 0.5, 0.5])
-                ).
-                set_type(nsi::Type::Color),
+                )
+                .set_type(nsi::Type::Color),
                 nsi::arg!(
                     "sss_scale",
                     &self.config.material.sss_scale.unwrap_or(0.0f32)
                 ),
                 nsi::arg!(
                     "incandescence",
-                    &self.config.material.incandescence.unwrap_or([0.0f32, 0.0, 0.0])
-                ).
-                set_type(nsi::Type::Color),
+                    &self
+                        .config
+                        .material
+                        .incandescence
+                        .unwrap_or([0.0f32, 0.0, 0.0])
+                )
+                .set_type(nsi::Type::Color),
                 nsi::arg!(
                     "incandescence_intensity",
-                    &self.config.material.incandescence_intensity.unwrap_or(0.0f32)
+                    &self
+                        .config
+                        .material
+                        .incandescence_intensity
+                        .unwrap_or(0.0f32)
                 ),
                 nsi::arg!(
                     "incandescence_multiplier",
-                    &self.config.material.incandescence_multiplier.unwrap_or([1.0f32, 1.0, 1.0])
-                ).
-                set_type(nsi::Type::Color),
+                    &self
+                        .config
+                        .material
+                        .incandescence_multiplier
+                        .unwrap_or([1.0f32, 1.0, 1.0])
+                )
+                .set_type(nsi::Type::Color),
                 //nsi::arg!("incandescence", &[0.8f32, 0.4, 0.2]),
                 //nsi::arg!("incandescence_intensity", &0.1f32), */
             ],
@@ -831,18 +726,8 @@ impl Model {
         c.create("env_xform", &nsi::Node::Transform, nsi::no_arg!());
         c.connect("env_xform", "", ".root", "objects", nsi::no_arg!());
 
-        c.create(
-            "environment",
-            &nsi::Node::Environment,
-            nsi::no_arg!(),
-        );
-        c.connect(
-            "environment",
-            "",
-            "env_xform",
-            "objects",
-            nsi::no_arg!(),
-        );
+        c.create("environment", &nsi::Node::Environment, nsi::no_arg!());
+        c.connect("environment", "", "env_xform", "objects", nsi::no_arg!());
 
         c.create("env_attrib", &nsi::Node::Attributes, nsi::no_arg!());
         c.connect(
@@ -853,10 +738,7 @@ impl Model {
             nsi::no_arg!(),
         );
 
-        c.set_attribute(
-            "env_attrib",
-            &vec![nsi::arg!("visibility.camera", &0i32)],
-        );
+        c.set_attribute("env_attrib", &vec![nsi::arg!("visibility.camera", &0i32)]);
 
         c.create("env_shader", &nsi::Node::Shader, nsi::no_arg!());
         c.connect(
@@ -873,10 +755,7 @@ impl Model {
             &vec![
                 nsi::arg!(
                     "shaderfilename",
-                    nsi::c_str!(shader_searchpath
-                        .join("environmentLight")
-                        .to_str()
-                        .unwrap())
+                    nsi::c_str!(shader_searchpath.join("environmentLight").to_str().unwrap())
                 ),
                 nsi::arg!(
                     "intensity",
@@ -888,23 +767,14 @@ impl Model {
         if let Some(texture) = &self.config.environment.texture {
             c.set_attribute(
                 "env_shader",
-                &vec![nsi::arg!(
-                    "image",
-                    nsi::c_str!(texture.as_str())
-                )],
+                &vec![nsi::arg!("image", nsi::c_str!(texture.as_str()))],
             );
         }
 
         // And now, render it!
-        c.render_control(&vec![nsi::arg!(
-            "action",
-            nsi::c_str!("start")
-        )]);
+        c.render_control(&vec![nsi::arg!("action", nsi::c_str!("start"))]);
 
         // Block until render is done.
-        c.render_control(&vec![nsi::arg!(
-            "action",
-            nsi::c_str!("wait")
-        )]);
+        c.render_control(&vec![nsi::arg!("action", nsi::c_str!("wait"))]);
     }
 }
