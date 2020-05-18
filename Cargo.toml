@@ -1,16 +1,16 @@
 [package]
 name = "rdla"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Moritz Moeller <virtualritz@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-clap = { version = "2.33.0", features = ["yaml"] }
+clap = { version = "2.33.1", features = ["yaml"] }
 error-chain = "0.12.2"
 if_chain = "1.0.0"
 indicatif = "0.14.0"
 nalgebra = "0.21.0"
-nsi = "0.1.16"
+nsi = "0.2.0"
 ply-rs = "0.1.2"
 rstar = "0.7.1"
 rand_distr = "0.2.2"

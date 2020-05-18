@@ -116,8 +116,7 @@ fn main() {
         }
 
         if let Some(backtrace) = e.backtrace() {
-            writeln!(stderr, "backtrace: {:?}", backtrace)
-                .expect(errmsg);
+            writeln!(stderr, "backtrace: {:?}", backtrace).expect(errmsg);
         }
 
         ::std::process::exit(1);
@@ -139,10 +138,7 @@ fn run() -> Result<()> {
             match toml::from_str::<Config>(&contents.as_str()) {
                 Ok(toml) => toml,
                 Err(e) => {
-                    eprintln!(
-                        "Config file error in '{}': {}.",
-                        config_file, e
-                    );
+                    eprintln!("Config file error in '{}': {}.", config_file, e);
                     return Ok(());
                 }
             }
@@ -171,8 +167,7 @@ fn run() -> Result<()> {
             }
 
             if let Some(file_name) = render_args.value_of("FILE") {
-                config.nsi_render.output.file_name =
-                    Some(file_name.to_string());
+                config.nsi_render.output.file_name = Some(file_name.to_string());
             }
 
             let mut model = dla::Model::new(&mut config);
@@ -191,9 +186,9 @@ fn run() -> Result<()> {
                 model.write_nsi(&path);
             }
         }
-        ("", None) => {
-            eprintln!("No subcommand given. Please specify at least one of 'help, 'render' or 'dump'.")
-        }
+        ("", None) => eprintln!(
+            "No subcommand given. Please specify at least one of 'help, 'render' or 'dump'."
+        ),
         _ => unreachable!(),
     }
     Ok(())
