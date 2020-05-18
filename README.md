@@ -104,9 +104,9 @@ This can be overridden with the `--config` flag.
     random_seed = 42
     particles = 10000
     # Spacing can be changed over the iteration.
-    # The 1st value is used for the first particle place
-    # and the last for the last particle. In between,
-    # spacing is linearly interpolated.
+    # The 1st value is used for the first particle
+    # placed and the last for the last particle.
+    # In between, spacing is linearly interpolated.
     spacing = [1.0, 1.0]
     attraction_distance = 3.0
     repulsion_distance = 1.0
@@ -118,14 +118,15 @@ This can be overridden with the `--config` flag.
         shape = "point"
         # "ring" diameter.
         diameter = 0
-        # "ring no. of particles.
+        # No. of particles on
+        # start shape.
         particles = 1
 
 [particle]
     # Scale can be changed over the iteration.
-    # The 1st value is used for the first particle placed
-    # and the last for the last particle. In between,
-    # scale is linearly interpolated.
+    # The 1st value is used for the first particle
+    # placed and the last for the last particle.
+    # In between,scale is linearly interpolated.
     scale = [2.0, 2.0]
     # A wavefront OBJ (converted to triangles for now)
     # to instace instead of a sphere particle.
