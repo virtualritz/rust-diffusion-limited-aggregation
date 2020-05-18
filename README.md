@@ -130,7 +130,7 @@ This can be overridden with the `--config` flag.
     # A wavefront OBJ (converted to triangles for now)
     # to instace instead of a sphere particle.
     instance_geo = "" # "assets/cube.obj"
-    subidivsion = true
+    subdivision = true
 
 [material]
     color = [0.5, 0.6, 0.8]
