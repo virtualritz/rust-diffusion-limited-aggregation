@@ -1,7 +1,7 @@
 # Diffusion Limited Aggregation in Rust
 
 Just to play with something while testing the
-[ɴsɪ](https://crates.io/crates/nsi) crate.
+[ɴsɪ crate](https://github.com/virtualritz/nsi).
 
 ![Result of rendering with 3Delight|NSI from within the tool](dla.jpg)
 2k resolution, 66,666 instances of a scaffoldy dodecahedron.
