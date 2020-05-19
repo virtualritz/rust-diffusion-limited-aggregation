@@ -1,53 +1,53 @@
 [aggregation]
-    show_progress = true
-    random_seed = 42
-    particles = 10000
-    # Spacing can be changed over the iteration.
-    # The 1st value is used for the first particle place
-    # and the last for the last particle. In between,
-    # spacing is linearly interpolated.
-    spacing = [1.0, 1.0]
-    attraction_distance = 3.0
-    repulsion_distance = 1.0
-    stubbornness = 0
-    stickiness = 1.0
+show_progress = true
+random_seed = 42
+particles = 10000
+# Spacing can be changed over the iteration.
+# The 1st value is used for the first particle place
+# and the last for the last particle. In between,
+# spacing is linearly interpolated.
+spacing = [1.0, 1.0]
+attraction_distance = 3.0
+repulsion_distance = 1.0
+stubbornness = 0
+stickiness = 1.0
 
-    [aggregation.start_shape]
-        # Try using "ring".
-        shape = "point"
-        # "ring" diameter.
-        diameter = 0
-        # "ring no. of particles.
-        particles = 1
+[aggregation.start_shape]
+# Try using "ring".
+shape = "point"
+# "ring" diameter.
+diameter = 0
+# "ring no. of particles.
+particles = 1
 
 [particle]
-    # Scale can be changed over the iteration.
-    # The 1st value is used for the first particle placed
-    # and the last for the last particle. In between,
-    # scale is linearly interpolated.
-    scale = [2.0, 2.0]
-    # A wavefront OBJ (converted to triangles for now)
-    # to instace instead of a sphere particle.
-    instance_geo = "" # "assets/cube.obj"
-    subdivision = true
+# Scale can be changed over the iteration.
+# The 1st value is used for the first particle placed
+# and the last for the last particle. In between,
+# scale is linearly interpolated.
+scale = [2.0, 2.0]
+# A wavefront OBJ (converted to triangles for now)
+# to instace instead of a sphere particle.
+instance_geo = "" # "assets/cube.obj"
+subdivision = true
 
 [material]
-    color = [0.5, 0.6, 0.8]
-    roughness = 0.3
-    metallic = 1.0
-    specular_level = 0.8
+color = [0.5, 0.6, 0.8]
+roughness = 0.3
+metallic = 1.0
+specular_level = 0.8
 
 [environment]
-    texture = "assets/artist_workshop_1k.tdl"
-    intensity = 1.2
+texture = "assets/artist_workshop_1k.tdl"
+intensity = 1.2
 
 [nsi_render]
-    # Images are square
-    resolution = 2048
-    shading_samples = 100
-    oversampling = 20
-    bucket_order = "circle"
+# Images are square
+resolution = 2048
+shading_samples = 100
+oversampling = 20
+bucket_order = "circle"
 
-    [nsi_render.output]
-        file_name = "out.exr"
-        display = false
+[nsi_render.output]
+file_name = "out.exr"
+display = false
