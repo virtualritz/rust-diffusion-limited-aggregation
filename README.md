@@ -1,29 +1,24 @@
 # Diffusion Limited Aggregation in Rust
 
 Just to play with something while testing the
-[ɴsɪ](https://crates.io/crates/nsi) crate.
+[ɴsɪ crate](https://github.com/virtualritz/nsi).
 
 ![Result of rendering with 3Delight|NSI from within the tool](dla.jpg)
 2k resolution, 66,666 instances of a scaffoldy dodecahedron.
 512 shading, 64 aa-samples. Rendered in about one minute via 3Delight
 Cloud. Post-processing in [Darktable](https://www.darktable.org/).
 
+## Dependencies
+
+This crate depends on [nsi-sys](https://github.com/virtualritz/nsi-sys) which in term requires a renderer that implements the ɴsɪ API.
+Currently the only renderer that does is 3Delight which, though commercial, has been and is free for personal use since over twenty years.
+
 ## Prerequisites
 
-The ɴsɪ crate indirectly depends on
-[3Delight](https://www.3delight.com/) being installed.
+Before you start, [download a 3Delight package](https://www.3delight.com/download) for your platform & install it (supported: Linux, macOS, Windows).
+This will set the `$DELIGHT` environment variable that the build script is looking for to find headers and the library to link against.
 
-Before you do anything you must
-[download](https://www.3delight.com/download) & install this renderer
-for your platform (supported: Linux, macOS & Windows).
-Otherwise the build of the `nsi-sys` crate will fail.
-
-I'm in talks with the makers of this renderer to supply developer
-packages that will render this step superfluous (pun intended).
-
-3Delight comes with a free, 12-core license and 1,000 (!) minutes worth
-of cloud credits on registration. The latter may come in handy once you
-start experimenting with the ɴsɪ crate or this codebase yourself.
+> **_Note:_** The free version of 3Delight will render with up to 12 cores on your machine. For crazier projects you can use their cheap cloud rendering service that gives you access to unlimited CPU cores. When you register you get 1,000 cloud minutes for free which ain’t too shabby and may come in handy once you start experimenting with this codebase yourself.
 
 ## Building
 
@@ -104,9 +99,9 @@ This can be overridden with the `--config` flag.
     random_seed = 42
     particles = 10000
     # Spacing can be changed over the iteration.
-    # The 1st value is used for the first particle place
-    # and the last for the last particle. In between,
-    # spacing is linearly interpolated.
+    # The 1st value is used for the first particle
+    # placed and the last for the last particle.
+    # In between, spacing is linearly interpolated.
     spacing = [1.0, 1.0]
     attraction_distance = 3.0
     repulsion_distance = 1.0
@@ -118,14 +113,15 @@ This can be overridden with the `--config` flag.
         shape = "point"
         # "ring" diameter.
         diameter = 0
-        # "ring no. of particles.
+        # No. of particles on
+        # start shape.
         particles = 1
 
 [particle]
     # Scale can be changed over the iteration.
-    # The 1st value is used for the first particle placed
-    # and the last for the last particle. In between,
-    # scale is linearly interpolated.
+    # The 1st value is used for the first particle
+    # placed and the last for the last particle.
+    # In between,scale is linearly interpolated.
     scale = [2.0, 2.0]
     # A wavefront OBJ (converted to triangles for now)
     # to instace instead of a sphere particle.
