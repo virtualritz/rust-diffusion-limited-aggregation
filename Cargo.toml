@@ -1,6 +1,6 @@
 [package]
 name = "rdla"
-version = "0.2.5"
+version = "0.2.6"
 authors = ["Moritz Moeller <virtualritz@gmail.com>"]
 license = "MIT"
 edition = "2018"
@@ -11,7 +11,7 @@ error-chain = "0.12.2"
 if_chain = "1.0.0"
 indicatif = "0.14.0"
 nalgebra = "0.21.0"
-nsi = "0.3.0"
+nsi = "0.4.0"
 ply-rs = "0.1.2"
 rstar = "0.7.1"
 rand_distr = "0.2.2"
@@ -23,8 +23,6 @@ toml = "0.5.6"
 tobj = "2.0.0"
 rpmalloc = "0.2.0"
 
-#[target.'cfg(target_os = "macos")'.dependencies]
-#jemallocator = "0.3.2"
 [profile.release]
 lto = "on"
 opt-level = 3

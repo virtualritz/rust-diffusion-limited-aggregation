@@ -173,8 +173,8 @@ impl Model {
         let c = {
             if self.config.nsi_render.output.cloud_render.unwrap() {
                 nsi::Context::new(&vec![
-                    nsi::arg!("cloud", nsi::integer!(1i32)),
-                    nsi::arg!("software", nsi::string!("HOUDINI")),
+                    nsi::integer!("cloud", 1),
+                    nsi::string!("software", "HOUDINI"),
                 ])
             } else {
                 nsi::Context::new(nsi::no_arg!())
@@ -186,9 +186,9 @@ impl Model {
     }
 
     pub fn write_nsi(&mut self, path: &Path) {
-        let c = nsi::Context::new(&vec![nsi::arg!(
+        let c = nsi::Context::new(&vec![nsi::string!(
             "streamfilename",
-            nsi::string!(path.to_str().unwrap())
+            path.to_str().unwrap()
         )])
         .unwrap();
 
@@ -376,22 +376,16 @@ impl Model {
             c.set_attribute(
                 model.name.as_str(),
                 &vec![
-                    nsi::arg!("P", nsi::points!(&mesh.positions)),
-                    nsi::arg!("P.indices", nsi::unsigneds!(mesh.indices.as_slice())),
-                    nsi::arg!(
-                        "nvertices",
-                        nsi::unsigneds!(mesh.num_face_indices.as_slice())
-                    ),
+                    nsi::points!("P", &mesh.positions),
+                    nsi::unsigneds!("P.indices", mesh.indices.as_slice()),
+                    nsi::unsigneds!("nvertices", mesh.num_face_indices.as_slice()),
                 ],
             );
 
             if self.config.particle.subdivision.unwrap_or(false) {
                 c.set_attribute(
                     model.name.as_str(),
-                    &vec![nsi::arg!(
-                        "subdivision.scheme",
-                        nsi::string!("catmull-clark")
-                    )],
+                    &vec![nsi::string!("subdivision.scheme", "catmull-clark")],
                 );
             }
 
@@ -460,7 +454,7 @@ impl Model {
 
                 c.set_attribute(
                     "particles",
-                    &vec![nsi::arg!("transformationmatrices", nsi::double_matrices!(&matrix))]
+                    &vec![nsi::double_matrices!("transformationmatrices", &matrix)]
                 );
 
             } else {
@@ -492,8 +486,8 @@ impl Model {
                 c.set_attribute(
                     "particles",
                     &vec![
-                        nsi::arg!("P", nsi::points!(&particle_positions)),
-                        nsi::arg!("width", nsi::floats!(&particle_widths)),
+                        nsi::points!("P", &particle_positions),
+                        nsi::floats!("width", &particle_widths),
                     ],
                 );
             }
@@ -523,9 +517,9 @@ impl Model {
 
         c.set_attribute(
             "camera_xform",
-            &vec![nsi::arg!(
+            &vec![nsi::double_matrix!(
                 "transformationmatrix",
-                nsi::double_matrix!(&[
+                &[
                     1.0f64,
                     0.0,
                     0.0,
@@ -542,29 +536,28 @@ impl Model {
                     0.0,
                     4.0f64 * self.bounding_radius as f64,
                     1.0,
-                ])
+                ]
             )],
         );
 
         // Setup a camera.
         c.create("camera", &nsi::Node::PerspectiveCamera, nsi::no_arg!());
 
-        c.set_attribute("camera", &vec![nsi::Arg::new("fov", nsi::float!(30f32))]);
+        c.set_attribute("camera", &vec![nsi::float!("fov", 30.)]);
         c.connect("camera", "", "camera_xform", "objects", nsi::no_arg!());
 
         // Setup a screen.
         c.create("screen", &nsi::Node::Screen, nsi::no_arg!());
         c.connect("screen", "", "camera", "screens", nsi::no_arg!());
 
-        let resolution = self.config.nsi_render.resolution.unwrap_or(2048) as i32;
+        let resolution = self.config.nsi_render.resolution.unwrap_or(2048);
         c.set_attribute(
             "screen",
             &vec![
-                nsi::Arg::new("resolution", nsi::integers!(&[resolution, resolution]))
-                    .array_len(2),
-                nsi::Arg::new(
+                nsi::unsigneds!("resolution", &[resolution, resolution]).array_len(2),
+                nsi::unsigned!(
                     "oversampling",
-                    nsi::integer!(self.config.nsi_render.oversampling.unwrap_or(64) as i32),
+                    self.config.nsi_render.oversampling.unwrap_or(64)
                 ),
             ],
         );
@@ -572,22 +565,21 @@ impl Model {
         c.set_attribute(
             ".global",
             &vec![
-                nsi::Arg::new("renderatlowpriority", nsi::integer!(1i32)),
-                nsi::Arg::new(
+                nsi::integer!("renderatlowpriority", 1),
+                nsi::string!(
                     "bucketorder",
-                    nsi::string!(self
-                        .config
+                    self.config
                         .nsi_render
                         .bucket_order
                         .as_ref()
                         .unwrap_or(&"circle".to_string())
-                        .as_str()),
+                        .as_str()
                 ),
-                nsi::Arg::new(
+                nsi::unsigned!(
                     "quality.shadingsamples",
-                    nsi::integer!(self.config.nsi_render.shading_samples.unwrap_or(64) as i32),
+                    self.config.nsi_render.shading_samples.unwrap_or(64)
                 ),
-                nsi::Arg::new("maximumraydepth.reflection", nsi::integer!(6i32)),
+                nsi::integer!("maximumraydepth.reflection", 6),
             ],
         );
 
@@ -597,9 +589,9 @@ impl Model {
         c.set_attribute(
             "beauty",
             &vec![
-                nsi::Arg::new("variablename", nsi::string!("Ci")),
-                nsi::Arg::new("withalpha", nsi::integer!(1)),
-                nsi::Arg::new("scalarformat", nsi::string!("half")),
+                nsi::string!("variablename", "Ci"),
+                nsi::integer!("withalpha", 1),
+                nsi::string!("scalarformat", "half"),
             ],
         );
 
@@ -616,19 +608,23 @@ impl Model {
             );
             c.set_attribute(
                 "display_driver",
-                &vec![nsi::arg!("drivername", nsi::string!("idisplay"))],
+                &vec![nsi::string!("drivername", "idisplay")],
             );
         }
 
         if let Some(file_name) = &self.config.nsi_render.output.file_name {
+            println!("{}", file_name);
             // Setup an EXR file output driver.
             c.create("file_driver", &nsi::Node::OutputDriver, nsi::no_arg!());
             c.connect("file_driver", "", "beauty", "outputdrivers", nsi::no_arg!());
             c.set_attribute(
                 "file_driver",
                 &vec![
-                    nsi::arg!("imagefilename", nsi::string!(file_name.as_str())),
-                    nsi::arg!("drivername", nsi::string!("exr")),
+                    nsi::Arg::new(
+                        "imagefilename",
+                        nsi::ArgData::from(nsi::String::new(file_name.as_str())),
+                    ),
+                    nsi::string!("drivername", "exr"),
                 ],
             );
         }
@@ -658,56 +654,35 @@ impl Model {
         c.set_attribute(
             "particle_shader",
             &vec![
-                nsi::arg!(
+                nsi::string!(
                     "shaderfilename",
-                    nsi::string!(shader_searchpath.join("dlPrincipled").to_str().unwrap())
+                    shader_searchpath.join("dlPrincipled").to_str().unwrap()
                 ),
-                nsi::arg!(
-                    "i_color",
-                    nsi::color!(&material.color.unwrap_or([1.0f32, 0.6, 0.3]))
-                ),
+                nsi::color!("i_color", &material.color.unwrap_or([1.0f32, 0.6, 0.3])),
                 //nsi::arg!("coating_thickness", &0.1f32),
-                nsi::arg!(
-                    "roughness",
-                    nsi::float!(material.roughness.unwrap_or(0.0f32))
-                ),
-                nsi::arg!(
-                    "specular_level",
-                    nsi::float!(material.specular_level.unwrap_or(0.5f32))
-                ),
-                nsi::arg!(
-                    "metallic",
-                    nsi::float!(material.metallic.unwrap_or(0.0f32))
-                ),
-                nsi::arg!(
-                    "anisotropy",
-                    nsi::float!(material.anisotropy.unwrap_or(0.0f32))
-                ),
-                nsi::arg!(
-                    "sss_weight",
-                    nsi::float!(material.sss_weight.unwrap_or(0.0f32))
-                ),
-                nsi::arg!(
+                nsi::float!("roughness", material.roughness.unwrap_or(0.)),
+                nsi::float!("specular_level", material.specular_level.unwrap_or(0.5)),
+                nsi::float!("metallic", material.metallic.unwrap_or(0.)),
+                nsi::float!("anisotropy", material.anisotropy.unwrap_or(0.0f32)),
+                nsi::float!("sss_weight", material.sss_weight.unwrap_or(0.0f32)),
+                nsi::color!(
                     "sss_color",
-                    nsi::color!(&material.sss_color.unwrap_or([0.5f32, 0.5, 0.5]))
+                    &material.sss_color.unwrap_or([0.5f32, 0.5, 0.5])
                 ),
-                nsi::arg!(
-                    "sss_scale",
-                    nsi::float!(material.sss_scale.unwrap_or(0.0f32))
-                ),
-                nsi::arg!(
+                nsi::float!("sss_scale", material.sss_scale.unwrap_or(0.0f32)),
+                nsi::color!(
                     "incandescence",
-                    nsi::color!(&material.incandescence.unwrap_or([0.0f32, 0.0, 0.0]))
+                    &material.incandescence.unwrap_or([0.0f32, 0.0, 0.0])
                 ),
-                nsi::arg!(
+                nsi::float!(
                     "incandescence_intensity",
-                    nsi::float!(material.incandescence_intensity.unwrap_or(0.0f32))
+                    material.incandescence_intensity.unwrap_or(0.0f32)
                 ),
-                nsi::arg!(
+                nsi::color!(
                     "incandescence_multiplier",
-                    nsi::color!(&material
+                    &material
                         .incandescence_multiplier
-                        .unwrap_or([1.0f32, 1.0, 1.0]))
+                        .unwrap_or([1.0f32, 1.0, 1.0])
                 ),
             ],
         );
@@ -728,10 +703,7 @@ impl Model {
             nsi::no_arg!(),
         );
 
-        c.set_attribute(
-            "env_attrib",
-            &vec![nsi::arg!("visibility.camera", nsi::integer!(0i32))],
-        );
+        c.set_attribute("env_attrib", &vec![nsi::integer!("visibility.camera", 0)]);
 
         c.create("env_shader", &nsi::Node::Shader, nsi::no_arg!());
         c.connect(
@@ -746,28 +718,22 @@ impl Model {
         c.set_attribute(
             "env_shader",
             &vec![
-                nsi::arg!(
+                nsi::string!(
                     "shaderfilename",
-                    nsi::string!(shader_searchpath.join("environmentLight").to_str().unwrap())
+                    shader_searchpath.join("environmentLight").to_str().unwrap()
                 ),
-                nsi::arg!(
-                    "intensity",
-                    nsi::float!(self.config.environment.intensity.unwrap_or(1.0))
-                ),
+                nsi::float!("intensity", self.config.environment.intensity.unwrap_or(1.)),
             ],
         );
 
         if let Some(texture) = &self.config.environment.texture {
-            c.set_attribute(
-                "env_shader",
-                &vec![nsi::arg!("image", nsi::string!(texture.as_str()))],
-            );
+            c.set_attribute("env_shader", &vec![nsi::string!("image", texture.as_str())]);
         }
 
         // And now, render it!
-        c.render_control(&vec![nsi::arg!("action", nsi::string!("start"))]);
+        c.render_control(&vec![nsi::string!("action", "start")]);
 
         // Block until render is done.
-        c.render_control(&vec![nsi::arg!("action", nsi::string!("wait"))]);
+        c.render_control(&vec![nsi::string!("action", "wait")]);
     }
 }
