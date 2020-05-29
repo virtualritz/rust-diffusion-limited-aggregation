@@ -172,12 +172,12 @@ impl Model {
         // Create rendering context.
         let c = {
             if self.config.nsi_render.output.cloud_render.unwrap() {
-                nsi::Context::new(&vec![
+                nsi::Context::new(&[
                     nsi::integer!("cloud", 1),
                     nsi::string!("software", "HOUDINI"),
                 ])
             } else {
-                nsi::Context::new(nsi::no_arg!())
+                nsi::Context::new(&[])
             }
         }
         .expect("Could not create NSI rendering context.");
@@ -186,11 +186,8 @@ impl Model {
     }
 
     pub fn write_nsi(&mut self, path: &Path) {
-        let c = nsi::Context::new(&vec![nsi::string!(
-            "streamfilename",
-            path.to_str().unwrap()
-        )])
-        .unwrap();
+        let c =
+            nsi::Context::new(&[nsi::string!("streamfilename", path.to_str().unwrap())]).unwrap();
 
         self.output_scene_nsi(&c);
     }
@@ -367,15 +364,15 @@ impl Model {
         }
         let (models, _materials) = object.unwrap();
 
-        c.create("instance", &nsi::Node::Transform, nsi::no_arg!());
+        c.create("instance", nsi::Node::Transform, &[]);
         for model in models {
             let mesh = &model.mesh;
 
-            c.create(model.name.as_str(), &nsi::Node::Mesh, nsi::no_arg!());
+            c.create(model.name.as_str(), nsi::Node::Mesh, &[]);
 
             c.set_attribute(
                 model.name.as_str(),
-                &vec![
+                &[
                     nsi::points!("P", &mesh.positions),
                     nsi::unsigneds!("P.indices", mesh.indices.as_slice()),
                     nsi::unsigneds!("nvertices", mesh.num_face_indices.as_slice()),
@@ -385,17 +382,11 @@ impl Model {
             if self.config.particle.subdivision.unwrap_or(false) {
                 c.set_attribute(
                     model.name.as_str(),
-                    &vec![nsi::string!("subdivision.scheme", "catmull-clark")],
+                    &[nsi::string!("subdivision.scheme", "catmull-clark")],
                 );
             }
 
-            c.connect(
-                model.name.as_str(),
-                "",
-                "instance",
-                "objects",
-                nsi::no_arg!(),
-            );
+            c.connect(model.name.as_str(), "", "instance", "objects", &[]);
         }
     }
 
@@ -410,22 +401,22 @@ impl Model {
 
                 c.create(
                     "particles",
-                    &nsi::Node::Instances,
-                    nsi::no_arg!(),
+                    nsi::Node::Instances,
+                    &[],
                 );
                 c.connect(
                     "particles",
                     "",
                     ".root",
                     "objects",
-                    nsi::no_arg!(),
+                    &[],
                 );
                 c.connect(
                     "instance",
                     "",
                     "particles",
                     "sourcemodels",
-                    nsi::no_arg!(),
+                    &[],
                 );
 
                 let mut matrix =
@@ -454,7 +445,7 @@ impl Model {
 
                 c.set_attribute(
                     "particles",
-                    &vec![nsi::double_matrices!("transformationmatrices", &matrix)]
+                    &[nsi::double_matrices!("transformationmatrices", &matrix)]
                 );
 
             } else {
@@ -462,15 +453,15 @@ impl Model {
                 // Send particles.
                 c.create(
                     "particles",
-                    &nsi::Node::Particles,
-                    nsi::no_arg!(),
+                    nsi::Node::Particles,
+                    &[],
                 );
                 c.connect(
                     "particles",
                     "",
                     ".root",
                     "objects",
-                    nsi::no_arg!(),
+                    &[],
                 );
 
                 let mut particle_positions =
@@ -485,7 +476,7 @@ impl Model {
 
                 c.set_attribute(
                     "particles",
-                    &vec![
+                    &[
                         nsi::points!("P", &particle_positions),
                         nsi::floats!("width", &particle_widths),
                     ],
@@ -512,12 +503,12 @@ impl Model {
         let shader_searchpath = Path::new(&delight).join("osl");
 
         // Setup a camera transform.
-        c.create("camera_xform", &nsi::Node::Transform, nsi::no_arg!());
-        c.connect("camera_xform", "", ".root", "objects", nsi::no_arg!());
+        c.create("camera_xform", nsi::Node::Transform, &[]);
+        c.connect("camera_xform", "", ".root", "objects", &[]);
 
         c.set_attribute(
             "camera_xform",
-            &vec![nsi::double_matrix!(
+            &[nsi::double_matrix!(
                 "transformationmatrix",
                 &[
                     1.0f64,
@@ -541,19 +532,19 @@ impl Model {
         );
 
         // Setup a camera.
-        c.create("camera", &nsi::Node::PerspectiveCamera, nsi::no_arg!());
+        c.create("camera", nsi::Node::PerspectiveCamera, &[]);
 
-        c.set_attribute("camera", &vec![nsi::float!("fov", 30.)]);
-        c.connect("camera", "", "camera_xform", "objects", nsi::no_arg!());
+        c.set_attribute("camera", &[nsi::float!("fov", 30.)]);
+        c.connect("camera", "", "camera_xform", "objects", &[]);
 
         // Setup a screen.
-        c.create("screen", &nsi::Node::Screen, nsi::no_arg!());
-        c.connect("screen", "", "camera", "screens", nsi::no_arg!());
+        c.create("screen", nsi::Node::Screen, &[]);
+        c.connect("screen", "", "camera", "screens", &[]);
 
         let resolution = self.config.nsi_render.resolution.unwrap_or(2048);
         c.set_attribute(
             "screen",
-            &vec![
+            &[
                 nsi::unsigneds!("resolution", &[resolution, resolution]).array_len(2),
                 nsi::unsigned!(
                     "oversampling",
@@ -564,7 +555,7 @@ impl Model {
 
         c.set_attribute(
             ".global",
-            &vec![
+            &[
                 nsi::integer!("renderatlowpriority", 1),
                 nsi::string!(
                     "bucketorder",
@@ -584,11 +575,11 @@ impl Model {
         );
 
         // Setup an output layer.
-        c.create("beauty", &nsi::Node::OutputLayer, nsi::no_arg!());
-        c.connect("beauty", "", "screen", "outputlayers", nsi::no_arg!());
+        c.create("beauty", nsi::Node::OutputLayer, &[]);
+        c.connect("beauty", "", "screen", "outputlayers", &[]);
         c.set_attribute(
             "beauty",
-            &vec![
+            &[
                 nsi::string!("variablename", "Ci"),
                 nsi::integer!("withalpha", 1),
                 nsi::string!("scalarformat", "half"),
@@ -598,62 +589,49 @@ impl Model {
         // We add i-display by default.
         if self.config.nsi_render.output.display.unwrap_or(true) {
             // Setup an i-display driver.
-            c.create("display_driver", &nsi::Node::OutputDriver, nsi::no_arg!());
-            c.connect(
-                "display_driver",
-                "",
-                "beauty",
-                "outputdrivers",
-                nsi::no_arg!(),
-            );
-            c.set_attribute(
-                "display_driver",
-                &vec![nsi::string!("drivername", "idisplay")],
-            );
+            c.create("display_driver", nsi::Node::OutputDriver, &[]);
+            c.connect("display_driver", "", "beauty", "outputdrivers", &[]);
+            c.set_attribute("display_driver", &[nsi::string!("drivername", "idisplay")]);
         }
 
         if let Some(file_name) = &self.config.nsi_render.output.file_name {
-            println!("{}", file_name);
             // Setup an EXR file output driver.
-            c.create("file_driver", &nsi::Node::OutputDriver, nsi::no_arg!());
-            c.connect("file_driver", "", "beauty", "outputdrivers", nsi::no_arg!());
+            c.create("file_driver", nsi::Node::OutputDriver, &[]);
+            c.connect("file_driver", "", "beauty", "outputdrivers", &[]);
             c.set_attribute(
                 "file_driver",
-                &vec![
-                    nsi::Arg::new(
-                        "imagefilename",
-                        nsi::ArgData::from(nsi::String::new(file_name.as_str())),
-                    ),
+                &[
+                    nsi::string!("imagefilename", file_name.as_str()),
                     nsi::string!("drivername", "exr"),
                 ],
             );
         }
 
         // Particle attributes.
-        c.create("particle_attrib", &nsi::Node::Attributes, nsi::no_arg!());
+        c.create("particle_attrib", nsi::Node::Attributes, &[]);
         c.connect(
             "particle_attrib",
             "",
             "particles",
             "geometryattributes",
-            nsi::no_arg!(),
+            &[],
         );
 
         // Particle shader.
-        c.create("particle_shader", &nsi::Node::Shader, nsi::no_arg!());
+        c.create("particle_shader", nsi::Node::Shader, &[]);
         c.connect(
             "particle_shader",
             "",
             "particle_attrib",
             "surfaceshader",
-            nsi::no_arg!(),
+            &[],
         );
 
         let material = &self.config.material;
 
         c.set_attribute(
             "particle_shader",
-            &vec![
+            &[
                 nsi::string!(
                     "shaderfilename",
                     shader_searchpath.join("dlPrincipled").to_str().unwrap()
@@ -688,36 +666,24 @@ impl Model {
         );
 
         // Set up an environment light.
-        c.create("env_xform", &nsi::Node::Transform, nsi::no_arg!());
-        c.connect("env_xform", "", ".root", "objects", nsi::no_arg!());
+        c.create("env_xform", nsi::Node::Transform, &[]);
+        c.connect("env_xform", "", ".root", "objects", &[]);
 
-        c.create("environment", &nsi::Node::Environment, nsi::no_arg!());
-        c.connect("environment", "", "env_xform", "objects", nsi::no_arg!());
+        c.create("environment", nsi::Node::Environment, &[]);
+        c.connect("environment", "", "env_xform", "objects", &[]);
 
-        c.create("env_attrib", &nsi::Node::Attributes, nsi::no_arg!());
-        c.connect(
-            "env_attrib",
-            "",
-            "environment",
-            "geometryattributes",
-            nsi::no_arg!(),
-        );
+        c.create("env_attrib", nsi::Node::Attributes, &[]);
+        c.connect("env_attrib", "", "environment", "geometryattributes", &[]);
 
-        c.set_attribute("env_attrib", &vec![nsi::integer!("visibility.camera", 0)]);
+        c.set_attribute("env_attrib", &[nsi::integer!("visibility.camera", 0)]);
 
-        c.create("env_shader", &nsi::Node::Shader, nsi::no_arg!());
-        c.connect(
-            "env_shader",
-            "",
-            "env_attrib",
-            "surfaceshader",
-            nsi::no_arg!(),
-        );
+        c.create("env_shader", nsi::Node::Shader, &[]);
+        c.connect("env_shader", "", "env_attrib", "surfaceshader", &[]);
 
         // Environment light attributes.
         c.set_attribute(
             "env_shader",
-            &vec![
+            &[
                 nsi::string!(
                     "shaderfilename",
                     shader_searchpath.join("environmentLight").to_str().unwrap()
@@ -727,13 +693,13 @@ impl Model {
         );
 
         if let Some(texture) = &self.config.environment.texture {
-            c.set_attribute("env_shader", &vec![nsi::string!("image", texture.as_str())]);
+            c.set_attribute("env_shader", &[nsi::string!("image", texture.as_str())]);
         }
 
         // And now, render it!
-        c.render_control(&vec![nsi::string!("action", "start")]);
+        c.render_control(&[nsi::string!("action", "start")]);
 
         // Block until render is done.
-        c.render_control(&vec![nsi::string!("action", "wait")]);
+        c.render_control(&[nsi::string!("action", "wait")]);
     }
 }
