@@ -45,7 +45,7 @@ Builds will be in the `./target` folder.
 
 > “Hold on to you lug nuts it’s time for an overhaul!”
 >
->     – Stanley Ipkiss, ‘The Mask’.
+> – Stanley Ipkiss, ‘The Mask’.
 
 To render in the cloud register at
 [3delight.com](https://www.3delight.com/), open the 3Delight Display app
@@ -99,7 +99,7 @@ ARGS:
 
 ### render Subcommand
 
-Render an image of result with 3Delight
+Render an image of the point cloud with 3Delight.
 
 ```
 USAGE:
