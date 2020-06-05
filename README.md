@@ -38,7 +38,7 @@ step may be noticeably slow.
 Builds will be in the `./target` folder.
 
 ```console
-> target/release/rdla --render
+> target/release/rdla render --display
 ```
 
 ### Cloud Rendering
@@ -56,7 +56,7 @@ Once you have done this all that is needed to launch a render in the
 cloud is to add the `--cloud` flag.
 
 ```console
-> target/release/rdla --render --cloud
+> target/release/rdla render --cloud --display
 ```
 
 ## Command Line Interface
