@@ -1,6 +1,6 @@
 [package]
 name = "rdla"
-version = "0.2.7"
+version = "0.2.8"
 authors = ["Moritz Moeller <virtualritz@gmail.com>"]
 license = "MIT"
 edition = "2018"
@@ -11,16 +11,16 @@ error-chain = "0.12.2"
 if_chain = "1.0.0"
 indicatif = "0.14.0"
 nalgebra = "0.21.0"
-nsi = "0.4.3"
+nsi = "0.4.5"
 ply-rs = "0.1.2"
 rstar = "0.8.0"
 rand_distr = "0.2.2"
 rand_xoshiro = "0.4.0"
 rand = "0.7.3"
-serde = "1.0.110"
-serde_derive = "1.0.110"
+serde = "1.0.111"
+serde_derive = "1.0.111"
 toml = "0.5.6"
-tobj = "2.0.1"
+tobj = "2.0.2"
 rpmalloc = "0.2.0"
 
 [profile.release]

@@ -66,7 +66,10 @@ cloud is to add the `--cloud` flag.
 > target/release/rdla --render --cloud
 ```
 
-## Usage
+## Command Line Interface
+
+The app creates & renders point clouds based on diffusion limited
+aggregation.
 
 ```usage
 USAGE:
@@ -77,13 +80,47 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -c, --config <FILE>    Sets a custom config file
+    -c, --config <FILE>    Sets a custom config file (default: ./rdla.toml)
     -p, --particles <N>    Number of particles to generate (default: 1000)
 
 SUBCOMMANDS:
     dump      Dump the result into an .nsi stream or into a Stanford .ply file
     help      Prints this message or the help of the given subcommand(s)
     render    Render an image of result with 3Delight
+```
+
+### dump Subcommand
+
+Dump the result into an `.nsi` stream or into a Stanford `.ply` file.
+
+```
+USAGE:
+    rdla dump <FILE>
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+ARGS:
+    <FILE>    File name of dump; extension determines format to use
+```
+
+### render Subcommand
+
+Render an image of result with 3Delight
+
+```
+USAGE:
+    rdla render [FLAGS] [FILE]
+
+FLAGS:
+        --cloud      Render using 3Delight Cloud
+    -d, --display    Open a 3Delight Display
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+ARGS:
+    <FILE>    Image file name to render to (default: out.exr)
 ```
 
 ## Config File
