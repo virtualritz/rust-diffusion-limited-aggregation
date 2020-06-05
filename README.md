@@ -22,13 +22,6 @@ This will set the `$DELIGHT` environment variable that the build script is looki
 
 ## Building
 
-As the ɴsɪ crate uses unstable Rust features you need to set the local
-toolchain to `nightly`:
-
-```console
-> rustup override set nightly
-```
-
 The space partitioning insertion is extremenly slow for debug builds.
 If you want to generate more than 10k particles doing a release build
 is mandatory.
