@@ -43,10 +43,9 @@ Builds will be in the `./target` folder.
 
 ### Cloud Rendering
 
-> “Hold on to you lug nuts it’s time for an overhaul [of your idea of
-> what constitutes fast rendering]!”
+> “Hold on to you lug nuts it’s time for an overhaul!”
 >
-> – analogously quoting Stanley Ipkiss, ‘The Mask’.
+>     – Stanley Ipkiss, ‘The Mask’.
 
 To render in the cloud register at
 [3delight.com](https://www.3delight.com/), open the 3Delight Display app
