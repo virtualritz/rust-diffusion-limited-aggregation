@@ -1,7 +1,7 @@
 #[global_allocator]
 static ALLOC: rpmalloc::RpMalloc = rpmalloc::RpMalloc;
 
-use clap::{load_yaml, App, AppSettings};
+use clap::{load_yaml, App};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde_derive::Deserialize;
 use std::io::Write;
@@ -121,7 +121,6 @@ fn run() -> Result<()> {
     let yaml = load_yaml!("cli.yml");
     let app =
         App::from_yaml(yaml)
-            .setting(AppSettings::ColoredHelp)
             .get_matches();
 
     // Read config file (if it exists).

@@ -2,6 +2,8 @@ name: rdla
 version: 0.2.1
 author: Moritz Moeller <virtualritz@protonmail.com>
 about: Creates & renders point clouds based on diffusion limited aggregation.
+global_settings:
+    - ColoredHelp
 args:
     - config:
         short: c
