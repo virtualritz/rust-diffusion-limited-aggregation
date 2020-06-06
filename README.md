@@ -38,15 +38,14 @@ step may be noticeably slow.
 Builds will be in the `./target` folder.
 
 ```console
-> target/release/rdla --render
+> target/release/rdla render --display
 ```
 
 ### Cloud Rendering
 
-> “Hold on to you lug nuts it’s time for an overhaul [of your idea of
-> what constitutes fast rendering]!”
+> “Hold on to you lug nuts it’s time for an overhaul!”
 >
-> – analogously quoting Stanley Ipkiss, ‘The Mask’.
+> – Stanley Ipkiss, ‘The Mask’.
 
 To render in the cloud register at
 [3delight.com](https://www.3delight.com/), open the 3Delight Display app
@@ -56,7 +55,7 @@ Once you have done this all that is needed to launch a render in the
 cloud is to add the `--cloud` flag.
 
 ```console
-> target/release/rdla --render --cloud
+> target/release/rdla render --cloud --display
 ```
 
 ## Command Line Interface
@@ -100,7 +99,7 @@ ARGS:
 
 ### render Subcommand
 
-Render an image of result with 3Delight
+Render an image of the point cloud with 3Delight.
 
 ```
 USAGE:
