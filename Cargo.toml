@@ -10,7 +10,7 @@ clap = { version = "2.33.1", features = ["yaml", "color"] }
 error-chain = "0.12.2"
 if_chain = "1.0.0"
 indicatif = "0.15.0"
-nalgebra = "0.22.0"
+nalgebra = "0.23.2"
 nsi = "0.5.1"
 ply-rs = "0.1.2"
 rstar = "0.8.0"
