@@ -119,9 +119,7 @@ fn main() {
 
 fn run() -> Result<()> {
     let yaml = load_yaml!("cli.yml");
-    let app =
-        App::from_yaml(yaml)
-            .get_matches();
+    let app = App::from_yaml(yaml).get_matches();
 
     // Read config file (if it exists).
     let config_file = app.value_of("config").unwrap_or("rdla.toml");

@@ -174,7 +174,7 @@ impl Model {
             if self.config.nsi_render.output.cloud_render.unwrap() {
                 nsi::Context::new(&[
                     nsi::integer!("cloud", 1),
-                    nsi::string!("software", "HOUDINI"),
+                    nsi::string!("software", "RENDERDL"),
                 ])
             } else {
                 nsi::Context::new(&[])
@@ -342,7 +342,7 @@ impl Model {
             false
         } else {
             //let mut rng = rand::thread_rng();
-            self.rng.gen_range(0.0, 1.0) <= self.stickiness
+            self.rng.gen_range(0.0..1.0) <= self.stickiness
         }
     }
 
@@ -364,11 +364,11 @@ impl Model {
         }
         let (models, _materials) = object.unwrap();
 
-        c.create("instance", nsi::Node::Transform, &[]);
+        c.create("instance", nsi::NodeType::Transform, &[]);
         for model in models {
             let mesh = &model.mesh;
 
-            c.create(model.name.as_str(), nsi::Node::Mesh, &[]);
+            c.create(model.name.as_str(), nsi::NodeType::Mesh, &[]);
 
             c.set_attribute(
                 model.name.as_str(),
@@ -401,7 +401,7 @@ impl Model {
 
                 c.create(
                     "particles",
-                    nsi::Node::Instances,
+                    nsi::NodeType::Instances,
                     &[],
                 );
                 c.connect(
@@ -453,7 +453,7 @@ impl Model {
                 // Send particles.
                 c.create(
                     "particles",
-                    nsi::Node::Particles,
+                    nsi::NodeType::Particles,
                     &[],
                 );
                 c.connect(
@@ -503,7 +503,7 @@ impl Model {
         let shader_searchpath = Path::new(&delight).join("osl");
 
         // Setup a camera transform.
-        c.create("camera_xform", nsi::Node::Transform, &[]);
+        c.create("camera_xform", nsi::NodeType::Transform, &[]);
         c.connect("camera_xform", "", ".root", "objects", &[]);
 
         c.set_attribute(
@@ -532,13 +532,13 @@ impl Model {
         );
 
         // Setup a camera.
-        c.create("camera", nsi::Node::PerspectiveCamera, &[]);
+        c.create("camera", nsi::NodeType::PerspectiveCamera, &[]);
 
         c.set_attribute("camera", &[nsi::float!("fov", 30.)]);
         c.connect("camera", "", "camera_xform", "objects", &[]);
 
         // Setup a screen.
-        c.create("screen", nsi::Node::Screen, &[]);
+        c.create("screen", nsi::NodeType::Screen, &[]);
         c.connect("screen", "", "camera", "screens", &[]);
 
         let resolution = self.config.nsi_render.resolution.unwrap_or(2048);
@@ -575,7 +575,7 @@ impl Model {
         );
 
         // Setup an output layer.
-        c.create("beauty", nsi::Node::OutputLayer, &[]);
+        c.create("beauty", nsi::NodeType::OutputLayer, &[]);
         c.connect("beauty", "", "screen", "outputlayers", &[]);
         c.set_attribute(
             "beauty",
@@ -589,14 +589,14 @@ impl Model {
         // We add i-display by default.
         if self.config.nsi_render.output.display.unwrap_or(true) {
             // Setup an i-display driver.
-            c.create("display_driver", nsi::Node::OutputDriver, &[]);
+            c.create("display_driver", nsi::NodeType::OutputDriver, &[]);
             c.connect("display_driver", "", "beauty", "outputdrivers", &[]);
             c.set_attribute("display_driver", &[nsi::string!("drivername", "idisplay")]);
         }
 
         if let Some(file_name) = &self.config.nsi_render.output.file_name {
             // Setup an EXR file output driver.
-            c.create("file_driver", nsi::Node::OutputDriver, &[]);
+            c.create("file_driver", nsi::NodeType::OutputDriver, &[]);
             c.connect("file_driver", "", "beauty", "outputdrivers", &[]);
             c.set_attribute(
                 "file_driver",
@@ -608,7 +608,7 @@ impl Model {
         }
 
         // Particle attributes.
-        c.create("particle_attrib", nsi::Node::Attributes, &[]);
+        c.create("particle_attrib", nsi::NodeType::Attributes, &[]);
         c.connect(
             "particle_attrib",
             "",
@@ -618,7 +618,7 @@ impl Model {
         );
 
         // Particle shader.
-        c.create("particle_shader", nsi::Node::Shader, &[]);
+        c.create("particle_shader", nsi::NodeType::Shader, &[]);
         c.connect(
             "particle_shader",
             "",
@@ -666,18 +666,18 @@ impl Model {
         );
 
         // Set up an environment light.
-        c.create("env_xform", nsi::Node::Transform, &[]);
+        c.create("env_xform", nsi::NodeType::Transform, &[]);
         c.connect("env_xform", "", ".root", "objects", &[]);
 
-        c.create("environment", nsi::Node::Environment, &[]);
+        c.create("environment", nsi::NodeType::Environment, &[]);
         c.connect("environment", "", "env_xform", "objects", &[]);
 
-        c.create("env_attrib", nsi::Node::Attributes, &[]);
+        c.create("env_attrib", nsi::NodeType::Attributes, &[]);
         c.connect("env_attrib", "", "environment", "geometryattributes", &[]);
 
         c.set_attribute("env_attrib", &[nsi::integer!("visibility.camera", 0)]);
 
-        c.create("env_shader", nsi::Node::Shader, &[]);
+        c.create("env_shader", nsi::NodeType::Shader, &[]);
         c.connect("env_shader", "", "env_attrib", "surfaceshader", &[]);
 
         // Environment light attributes.
