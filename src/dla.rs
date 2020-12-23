@@ -1,5 +1,4 @@
 use nalgebra::Vector3;
-use nsi;
 use ply_rs::{
     ply::{
         Addable, DefaultElement, ElementDef, Encoding, Ply, Property, PropertyDef, PropertyType,
@@ -12,7 +11,6 @@ use rand_distr::UnitSphere;
 use rand_xoshiro::{rand_core::SeedableRng, Xoshiro256Plus};
 use rstar::{primitives::PointWithData, RStarInsertionStrategy, RTree, RTreeParams};
 use std::{env, fs::File, path::Path};
-use tobj;
 
 pub use crate::*;
 
@@ -69,7 +67,7 @@ pub struct Model {
 
 impl Model {
     pub fn new(config: &Config) -> Model {
-        let model = Model {
+        Model {
             // Parameters from config.
             config: config.clone(),
 
@@ -85,8 +83,7 @@ impl Model {
             particles: Vec::new(),
             tree: Tree::new_with_params(),
             rng: Xoshiro256Plus::seed_from_u64(config.aggregation.random_seed.unwrap_or(42)),
-        };
-        model
+        }
     }
 
     pub fn run(&mut self) {
@@ -126,17 +123,16 @@ impl Model {
                     .unwrap_or(100.0)
                     * 0.5;
 
-                let n = self.config.aggregation.start_shape.particles.unwrap_or(360);
+                let particles = self.config.aggregation.start_shape.particles.unwrap_or(360);
 
-                for i in 0..n {
-                    let t = i as f32 / n as f32;
-                    let a = t * 2.0 * std::f32::consts::PI;
-                    let x = a.cos() * radius;
-                    let y = a.sin() * radius;
+                for i in 0..particles {
+                    let angle = (i as f32 / particles as f32) * std::f32::consts::TAU;
+                    let x = angle.cos() * radius;
+                    let y = angle.sin() * radius;
                     self.add(&Point3D::new(x, y, 0.0), scale[0]);
                     progress_bar.inc(1);
                 }
-                number_of_particles -= n;
+                number_of_particles -= particles;
             }
             _ => {
                 // Single seed point.

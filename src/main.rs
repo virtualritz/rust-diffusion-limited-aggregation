@@ -164,14 +164,14 @@ fn run() -> Result<()> {
                 config.nsi_render.output.file_name = Some(file_name.to_string());
             }
 
-            let mut model = dla::Model::new(&mut config);
+            let mut model = dla::Model::new(&config);
             model.run();
             model.render_nsi();
         }
         ("dump", Some(dump_args)) => {
             let path = Path::new(dump_args.value_of("FILE").unwrap());
 
-            let mut model = dla::Model::new(&mut config);
+            let mut model = dla::Model::new(&config);
             model.run();
 
             if "ply" == path.extension().unwrap() {
