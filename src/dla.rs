@@ -1,3 +1,4 @@
+use bytemuck as bm;
 use nalgebra::Vector3;
 use ply_rs::{
     ply::{
@@ -370,8 +371,11 @@ impl Model {
                 model.name.as_str(),
                 &[
                     nsi::points!("P", &mesh.positions),
-                    nsi::unsigneds!("P.indices", mesh.indices.as_slice()),
-                    nsi::unsigneds!("nvertices", mesh.num_face_indices.as_slice()),
+                    nsi::integers!("P.indices", bm::cast_slice(mesh.indices.as_slice())),
+                    nsi::integers!(
+                        "nvertices",
+                        bm::cast_slice(mesh.num_face_indices.as_slice())
+                    ),
                 ],
             );
 
@@ -541,10 +545,10 @@ impl Model {
         c.set_attribute(
             "screen",
             &[
-                nsi::unsigneds!("resolution", &[resolution, resolution]).array_len(2),
-                nsi::unsigned!(
+                nsi::integers!("resolution", &[resolution as _, resolution as _]).array_len(2),
+                nsi::integer!(
                     "oversampling",
-                    self.config.nsi_render.oversampling.unwrap_or(64)
+                    self.config.nsi_render.oversampling.unwrap_or(64) as _
                 ),
             ],
         );
@@ -562,9 +566,9 @@ impl Model {
                         .unwrap_or(&"circle".to_string())
                         .as_str()
                 ),
-                nsi::unsigned!(
+                nsi::integer!(
                     "quality.shadingsamples",
-                    self.config.nsi_render.shading_samples.unwrap_or(64)
+                    self.config.nsi_render.shading_samples.unwrap_or(64) as _
                 ),
                 nsi::integer!("maximumraydepth.reflection", 6),
             ],
