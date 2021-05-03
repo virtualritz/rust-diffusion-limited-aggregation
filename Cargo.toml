@@ -10,7 +10,7 @@ bytemuck = "1.5.1"
 clap = { version = "2.33.3", features = ["yaml", "color"] }
 error-chain = "0.12.4"
 if_chain = "1.0.1"
-indicatif = "0.15.0"
+indicatif = "0.16.0"
 nalgebra = "0.25.3"
 nsi = "0.6.0"
 ply-rs = "0.1.3"
