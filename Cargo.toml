@@ -1,31 +1,32 @@
 [package]
 name = "rdla"
-version = "0.2.8"
+version = "0.2.9"
 authors = ["Moritz Moeller <virtualritz@gmail.com>"]
 license = "MIT"
 edition = "2018"
 
 [dependencies]
-bytemuck = "1.5.1"
+bytemuck = "1.7.0"
 clap = { version = "2.33.3", features = ["yaml", "color"] }
 error-chain = "0.12.4"
 if_chain = "1.0.1"
-indicatif = "0.15.0"
-nalgebra = "0.25.3"
+indicatif = "0.16.2"
+nalgebra = "0.27.1"
 nsi = "0.6.0"
 ply-rs = "0.1.3"
-rstar = "0.8.2"
-rand_distr = "0.4.0"
+rstar = "0.9.0"
+rand_distr = "0.4.1"
 rand_xoshiro = "0.6.0"
-rand = "0.8.3"
-serde = "1.0.124"
-serde_derive = "1.0.124"
+rand = "0.8.4"
+serde = "1.0.126"
+serde_derive = "1.0.126"
 toml = "0.5.8"
-tobj = "2.0.4"
-rpmalloc = "0.2.0"
+tobj = "3.0.1"
+rpmalloc = "0.2.2"
+#mimalloc = { version = "*", default-features = false }
 
 [profile.release]
 lto = "on"
 opt-level = 3
 codegen-units = 1
-panic = "unwind"
+panic = "abort"

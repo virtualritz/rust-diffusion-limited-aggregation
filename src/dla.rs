@@ -354,7 +354,7 @@ impl Model {
     }
 
     fn instance_obj_nsi(&self, c: &nsi::Context, instance_obj_path: &Path) {
-        let object = tobj::load_obj(instance_obj_path, false);
+        let object = tobj::load_obj(instance_obj_path, &tobj::LoadOptions::default());
         if let Err(e) = object {
             eprintln!("Error loading '{}': {}", instance_obj_path.display(), e);
             return;
@@ -374,7 +374,7 @@ impl Model {
                     nsi::integers!("P.indices", bm::cast_slice(mesh.indices.as_slice())),
                     nsi::integers!(
                         "nvertices",
-                        bm::cast_slice(mesh.num_face_indices.as_slice())
+                        bm::cast_slice(mesh.face_arities.as_slice())
                     ),
                 ],
             );

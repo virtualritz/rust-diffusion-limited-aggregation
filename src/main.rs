@@ -1,6 +1,12 @@
 #[global_allocator]
 static ALLOC: rpmalloc::RpMalloc = rpmalloc::RpMalloc;
 
+/*
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;*/
+
 use clap::{load_yaml, App};
 use indicatif::{ProgressBar, ProgressStyle};
 use serde_derive::Deserialize;
